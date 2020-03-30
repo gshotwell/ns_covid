@@ -1,0 +1,55 @@
+---
+title: "NS Covid Rates"
+author: "Gordon Shotwell"
+date: "30/03/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(RcppRoll)
+source("data.R")
+covid <- covid %>% 
+  mutate(total_tests = positives + negatives,
+         daily_pos = positives - lag(positives),
+         daily_neg = negatives - lag(negatives),
+         daily_tests = daily_pos + daily_neg,
+         date = lubridate::ymd(date),
+         three_day_cases = roll_sum(daily_pos, 3, fill = NA, align = "right"))
+```
+
+```{r plots, echo = FALSE, warning=FALSE, message=FALSE}
+theme_set(theme_minimal())
+
+ggplot(covid, aes(x  = date, y = positives)) +
+  geom_point() +
+  geom_line() +
+  scale_y_log10() +
+  labs(y = "Positive tests (Log scale)",
+       x = "Date",
+       title = "Nova Scotia COVID Cases") 
+
+ggplot(covid, aes(x = positives, y = three_day_cases)) +
+  geom_point() +
+  scale_y_log10() +
+  geom_smooth() +
+  labs(y = "Cases in previous three days",
+       x = "Total cases",
+       title = "Nova Scotia COVID cases")
+
+ggplot(covid, aes(x  = date, y = daily_tests)) +
+  geom_point() +
+  geom_line() +
+  labs(y = "Test per day",
+       x = "Date",
+       title = "Nova Scotia COVID Tests") 
+
+ggplot(covid, aes(x  = date, y = daily_pos / daily_tests)) +
+  geom_point() +
+  geom_line() +
+  scale_y_continuous(labels = scales::percent)+
+  labs(y = "Percent positive",
+       x = "Date",
+       title = "Nova Scotia COVID tests") 
+```
+
