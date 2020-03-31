@@ -15,7 +15,7 @@ covid <- covid %>%
          daily_neg = negatives - lag(negatives),
          daily_tests = daily_pos + daily_neg,
          date = lubridate::ymd(date),
-         three_day_cases = roll_sum(daily_pos, 5, fill = NA, align = "right"))
+         five_day_cases = roll_sum(daily_pos, 5, fill = NA, align = "right"))
 ```
 # Data 
 
@@ -38,7 +38,7 @@ ggplot(covid, aes(x  = date, y = positives)) +
 I stole this plot from an excellent [data visualization](https://aatishb.com/covidtrends/) of covid trends. Each point is a day and it shows the sum of new cases in the previous five days against the number of total cases. I chose a five day sum because that's about the mean incubation period for COVID-19. If the disease were uncontrolled we would see the number of new cases increasing in proportion to the number of existing cases. Since Nova Scotia was lucky to get the disease quite late, and aggressive in its public policy response, it seems like we are seeing a flattening of the curve here as new cases over the past five days are staying steady or falling. 
 
 ```{r, echo = FALSE, warning=FALSE, message=FALSE}
-ggplot(covid, aes(x = positives, y = three_day_cases)) +
+ggplot(covid, aes(x = positives, y = five_day_cases)) +
   geom_point() +
   geom_line() +
   labs(y = "Cases in previous five days",
@@ -71,4 +71,14 @@ ggplot(covid, aes(x  = date,
        x = "Date",
        title = "Nova Scotia COVID tests") 
 ```
+
+
+# Raw data
+
+Here is the raw data I collect, please let me know if I've made any mistakes in recording this data. 
+
+```{r}
+knitr::kable(covid)
+```
+
 
