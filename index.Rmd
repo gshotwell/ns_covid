@@ -16,21 +16,28 @@ covid <- covid %>%
          daily_tests = daily_pos + daily_neg,
          date = lubridate::ymd(date),
          five_day_cases = roll_sum(daily_pos, 5, fill = NA, align = "right"))
+covid$no_action <- 3
+for (i in 2:nrow(covid)) {
+  covid$no_action[i] <- covid$no_action[(i - 1)] * 1.35
+}
 ```
 # Data 
 
 The data comes from [daily reports](https://novascotia.ca/coronavirus/#cases) from the Nova Scotia Government which I record in a [Github Repo](https://github.com/GShotwell/ns_covid).
 
-The first plot is a plot of total positive tests over time. The data is plotted on a log scale, so a staight `y = x line` indicates uninteruppted exponential growth and a flattening inicates that the rate of expoentiation is decreasing. 
+The first plot is a plot of total positive tests over time. The red line shows a 35% daily growth rate, which is what likely would've happened had we not undertaken any public policy interventions. The black line is the actual cases.
 
 ```{r plots, echo = FALSE, warning=FALSE, message=FALSE}
 theme_set(theme_minimal())
 
-ggplot(covid, aes(x  = date, y = positives)) +
-  geom_point() +
+covid %>% 
+  select(date, actual_cases = positives, no_action) %>% 
+  pivot_longer(c("actual_cases", "no_action"), names_to = "type", values_to = "cases") %>% 
+  mutate(type = factor(type, levels = c("no_action", "actual_cases"))) %>% 
+  ggplot(aes(x  = date, y = cases, group = type, colour = type)) +
+  scale_color_manual(values = c("red", "black")) +
   geom_line() +
-  scale_y_log10() +
-  labs(y = "Positive tests (Log scale)",
+  labs(y = "Positive tests",
        x = "Date",
        title = "Nova Scotia COVID Cases") 
 ```
