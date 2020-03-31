@@ -1,7 +1,7 @@
 ---
 title: "NS Covid Rates"
 author: "Gordon Shotwell"
-date: "30/03/2020"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: html_document
 ---
 
@@ -15,8 +15,13 @@ covid <- covid %>%
          daily_neg = negatives - lag(negatives),
          daily_tests = daily_pos + daily_neg,
          date = lubridate::ymd(date),
-         three_day_cases = roll_sum(daily_pos, 3, fill = NA, align = "right"))
+         three_day_cases = roll_sum(daily_pos, 5, fill = NA, align = "right"))
 ```
+# Data 
+
+The data comes from [daily reports](https://novascotia.ca/coronavirus/#cases) from the Nova Scotia Government which I record in a [Github Repo](https://github.com/GShotwell/ns_covid).
+
+The first plot is a plot of total positive tests over time. The data is plotted on a log scale, so a staight `y = x line` indicates uninteruppted exponential growth and a flattening inicates that the rate of expoentiation is decreasing. 
 
 ```{r plots, echo = FALSE, warning=FALSE, message=FALSE}
 theme_set(theme_minimal())
@@ -28,27 +33,41 @@ ggplot(covid, aes(x  = date, y = positives)) +
   labs(y = "Positive tests (Log scale)",
        x = "Date",
        title = "Nova Scotia COVID Cases") 
+```
 
+I stole this plot from an excellent [data visualization](https://aatishb.com/covidtrends/) of covid trends. Each point is a day and it shows the sum of new cases in the previous five days against the number of total cases. I chose a five day sum because that's about the mean incubation period for COVID-19. If the disease were uncontrolled we would see the number of new cases increasing in proportion to the number of existing cases. Since Nova Scotia was lucky to get the disease quite late, and aggressive in its public policy response, it seems like we are seeing a flattening of the curve here as new cases over the past five days are staying steady or falling. 
+
+```{r, echo = FALSE, warning=FALSE, message=FALSE}
 ggplot(covid, aes(x = positives, y = three_day_cases)) +
   geom_point() +
-  scale_y_log10() +
-  geom_smooth() +
-  labs(y = "Cases in previous three days",
+  geom_line() +
+  labs(y = "Cases in previous five days",
        x = "Total cases",
        title = "Nova Scotia COVID cases")
+```
 
+## Tests
+
+Next we look at tests. The first one shows how great the microbiology lab has been in ramping up testing capacity. This is [incredible](https://www.cbc.ca/news/canada/nova-scotia/covid-19-microbiology-lab-testing-health-care-1.5515115) and they deserve a great deal of thanks from all of us. I would be sending gift baskets of home made saurkraut and miso if that didn't violate social distancing rules.
+
+```{r, echo = FALSE, warning=FALSE, message=FALSE}
 ggplot(covid, aes(x  = date, y = daily_tests)) +
   geom_point() +
   geom_line() +
   labs(y = "Test per day",
        x = "Date",
        title = "Nova Scotia COVID Tests") 
+```
 
-ggplot(covid, aes(x  = date, y = daily_pos / daily_tests)) +
+The last thing to look at is the positive rate for our testing. This should be read in conjunction with the previous chart because if we test a lot of people, the positive rate will probably go down even though nothing changed about the disease. The thing to pay attention here is if these two move in the same direction, if the number of tests goes up and the positive rate also goes up that's bad, if they both go down that's good.
+
+```{r, echo = FALSE, warning=FALSE, message=FALSE}
+ggplot(covid, aes(x  = date, 
+                  y = daily_pos / daily_tests,
+                  size = daily_tests)) +
   geom_point() +
-  geom_line() +
   scale_y_continuous(labels = scales::percent)+
-  labs(y = "Percent positive",
+  labs(y = "Positive rate",
        x = "Date",
        title = "Nova Scotia COVID tests") 
 ```
