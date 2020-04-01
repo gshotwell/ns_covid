@@ -20,6 +20,7 @@ covid$no_action <- 3
 for (i in 2:nrow(covid)) {
   covid$no_action[i] <- covid$no_action[(i - 1)] * 1.35
 }
+covid$no_action <- round(covid$no_action, 0)
 ```
 # Data 
 
@@ -35,7 +36,7 @@ covid %>%
   pivot_longer(c("actual_cases", "no_action"), names_to = "type", values_to = "cases") %>% 
   mutate(Scenario = factor(type, levels = c("no_action", "actual_cases"))) %>% 
   ggplot(aes(x  = date, y = cases, group = Scenario, colour = Scenario)) +
-  scale_color_manual(values = c("red", "black")) +
+  scale_color_manual(values = c("red", "black"), labels = c("No Intervention", "Actual Cases")) +
   geom_line() +
   geom_vline(xintercept = lubridate::ymd("2020-03-22"), 
              colour = "gray") +
