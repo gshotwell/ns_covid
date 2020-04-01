@@ -37,7 +37,15 @@ covid %>%
   ggplot(aes(x  = date, y = cases, group = type, colour = type)) +
   scale_color_manual(values = c("red", "black")) +
   geom_line() +
-  labs(y = "Positive tests",
+  geom_vline(xintercept = lubridate::ymd("2020-03-22"), 
+             colour = "gray") +
+  annotate("text", 
+           x = lubridate::ymd("2020-03-22") - 0.4, 
+           y = 200, 
+           label = "State of Emergency Declared", 
+           color = "gray",
+           angle = 90) +
+  labs(y = "Positive Tests",
        x = "Date",
        title = "Nova Scotia COVID Cases") 
 ```
