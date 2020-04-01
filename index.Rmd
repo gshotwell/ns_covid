@@ -33,8 +33,8 @@ theme_set(theme_minimal())
 covid %>% 
   select(date, actual_cases = positives, no_action) %>% 
   pivot_longer(c("actual_cases", "no_action"), names_to = "type", values_to = "cases") %>% 
-  mutate(type = factor(type, levels = c("no_action", "actual_cases"))) %>% 
-  ggplot(aes(x  = date, y = cases, group = type, colour = type)) +
+  mutate(Scenario = factor(type, levels = c("no_action", "actual_cases"))) %>% 
+  ggplot(aes(x  = date, y = cases, group = Scenario, colour = Scenario)) +
   scale_color_manual(values = c("red", "black")) +
   geom_line() +
   geom_vline(xintercept = lubridate::ymd("2020-03-22"), 
