@@ -25,7 +25,7 @@ for (i in 2:nrow(covid)) {
 
 The data comes from [daily reports](https://novascotia.ca/coronavirus/#cases) from the Nova Scotia Government which I record in a [Github Repo](https://github.com/GShotwell/ns_covid).
 
-The first plot is a plot of total positive tests over time. The red line shows a 35% daily growth rate, which is what likely would've happened had we not undertaken any public policy interventions. The black line is the actual cases.
+The first plot is a plot of total positive tests over time. The red line shows a 35% daily growth rate, which is about what would've happened had we not undertaken any public policy interventions. The black line is the actual cases. 
 
 ```{r plots, echo = FALSE, warning=FALSE, message=FALSE}
 theme_set(theme_minimal())
