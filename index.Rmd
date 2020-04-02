@@ -57,7 +57,7 @@ It's also useful to track active cases which are all cases which haven't recover
 ```{r, echo = FALSE, warning=FALSE, message=FALSE}
 
 covid %>% 
-  select(date, total = positives, recovered, hospital) %>% 
+  select(date, total = positives, recovered, in_hospital) %>% 
   mutate(active = total - recovered) %>% 
   select(-total) %>% 
   pivot_longer(-date, names_to = "group", values_to = "number") %>% 

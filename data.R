@@ -1,24 +1,7 @@
-covid <- tibble::tribble(
-     ~date, ~positives, ~negatives,     ~hospital,  ~recovered,
-  "2020-03-15",          3,        415,  0,          0,
-  "2020-03-16",          5,        671,  0,          0,
-  "2020-03-17",          7,        934,  0,          0,
-  "2020-03-18",         12,       1141,  0,          0,
-  "2020-03-19",         14,       1373,  1,          0,
-  "2020-03-20",         15,       1546,  1,          0,
-  "2020-03-21",         21,       1826,  1,          0,
-  "2020-03-22",         28,       2088,  2,          0,
-  "2020-03-23",         41,       2308,  1,          0,
-  "2020-03-24",         51,       2474,  1,          1,
-  "2020-03-25",         68,       2772,  1,          2,
-  "2020-03-26",         73,       3201,  2,          2,
-  "2020-03-27",         90,       3649,  2,          3,
-  "2020-03-28",        110,       4031,  3,          4,
-  "2020-03-29",        122,       4731,  3,          7,
-  "2020-03-30",        127,       5045,  4,         10,
-  "2020-03-31",        147,       5763,  4,         10,
-  "2020-04-01",        173,       6591,  5,         11,
-  "2020-04-02",        193,       7446,  5,         11
-  )
-
+covid <- readr::read_csv("https://novascotia.ca/coronavirus/data/COVID-19-data.csv",
+                     skip = 1)
+covid$Hospitalized <- NULL
+covid <- covid[, 1:6]
+names(covid) <- c("date", "new_cases", "negatives", "recovered", "in_hospital", "deaths")
+covid$positives <- cumsum(covid$new_cases)
 write.csv(covid, "ns_daily_covid.csv")
