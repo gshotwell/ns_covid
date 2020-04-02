@@ -61,7 +61,7 @@ covid %>%
   mutate(active = total - recovered) %>% 
   select(-total) %>% 
   pivot_longer(-date, names_to = "group", values_to = "number") %>% 
-  mutate(group = factor(group, levels = c("active",  "recovered", "hospital"),
+  mutate(group = factor(group, levels = c("active",  "recovered", "in_hospital"),
                         labels = c("Active",  "Recovered", "Hospital"))) %>% 
   ggplot(aes(x = date, y = number, group = group, colour = group)) +
   geom_line() +
