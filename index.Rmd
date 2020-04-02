@@ -8,6 +8,7 @@ output: html_document
 ```{r setup, include=FALSE}
 library(tidyverse)
 library(RcppRoll)
+library(plotly)
 source("data.R")
 covid <- covid %>% 
   mutate(total_tests = positives + negatives,
@@ -50,6 +51,28 @@ covid %>%
        x = "Date",
        title = "Nova Scotia COVID Cases") 
 ```
+
+It's also useful to track active cases which are all cases which haven't recovered yet.
+
+```{r, echo = FALSE, warning=FALSE, message=FALSE}
+
+covid %>% 
+  select(date, total = positives, recovered, hospital) %>% 
+  mutate(active = total - recovered) %>% 
+  select(-total) %>% 
+  pivot_longer(-date, names_to = "group", values_to = "number") %>% 
+  mutate(group = factor(group, levels = c("active",  "recovered", "hospital"),
+                        labels = c("Active",  "Recovered", "Hospital"))) %>% 
+  ggplot(aes(x = date, y = number, group = group, colour = group)) +
+  geom_line() +
+  labs(y = "Number of people",
+       x = "Date",
+       title = "Nova Scotia Covid Cases")
+
+```
+
+
+
 
 I stole this plot from an excellent [data visualization](https://aatishb.com/covidtrends/) of covid trends. Each point is a day and it shows the sum of new cases in the previous five days against the number of total cases. I chose a five day sum because that's about the mean incubation period for COVID-19.
 
