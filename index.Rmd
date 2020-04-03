@@ -45,8 +45,8 @@ covid %>%
              colour = "gray") +
   annotate("text", 
            x = lubridate::ymd("2020-03-22") - 0.4, 
-           y = 200, 
-           label = "State of Emergency Declared", 
+           y = 300, 
+           label = "State of Emergency", 
            color = "gray",
            angle = 90) +
   labs(y = "Positive Tests",
@@ -81,7 +81,15 @@ I stole this plot from an excellent [data visualization](https://aatishb.com/cov
 ```{r, echo = FALSE, warning=FALSE, message=FALSE}
 ggplot(covid, aes(x = positives, y = five_day_cases)) +
   geom_point() +
-  geom_line() +
+  geom_smooth(se = FALSE, size = 0.5, alpha = 0.1) +
+  geom_vline(xintercept = 41, 
+             colour = "gray") +
+  annotate("text", 
+           x = 37, 
+           y = 60, 
+           label = "State of Emergency", 
+           color = "gray",
+           angle = 90) +
   labs(y = "Cases in previous five days",
        x = "Total cases",
        title = "Nova Scotia COVID cases")
