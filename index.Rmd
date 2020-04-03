@@ -108,7 +108,7 @@ ggplot(covid, aes(x  = date, y = daily_tests)) +
        title = "Nova Scotia COVID Tests") 
 ```
 
-The last thing to look at is the positive rate for our testing. This should be read in conjunction with the previous chart because if we test a lot of people, the positive rate will probably go down even though nothing changed about the disease. The thing to pay attention here is if these two move in the same direction, if the number of tests goes up and the positive rate also goes up that's bad, if they both go down that's good.
+The last thing to look at is the positive rate for our testing. This should be read in conjunction with the previous chart because if we test a lot of people, the positive rate will probably go down even though nothing changed about the disease.
 
 ```{r, echo = FALSE, warning=FALSE, message=FALSE}
 ggplot(covid, aes(x  = date, 
