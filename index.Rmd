@@ -126,8 +126,10 @@ ggplot(covid, aes(x  = date,
 
 Here is the raw data I collect, please let me know if I've made any mistakes in recording this data. 
 
-```{r}
-knitr::kable(covid)
+```{r, echo = FALSE, warning=FALSE, message=FALSE}
+covid %>% 
+  arrange(desc(date)) %>% 
+  DT::datatable(rownames = FALSE)
 ```
 
 
