@@ -3,13 +3,15 @@ title: "NS Covid Rates"
 author: "Gordon Shotwell"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: html_document
+params:
+  data: covid
 ---
 
 ```{r setup, include=FALSE}
 library(tidyverse)
 library(RcppRoll)
 library(plotly)
-source("data.R")
+covid <- readRDS("covid.Rds")
 covid <- covid %>% 
   mutate(total_tests = positives + negatives,
          daily_pos = positives - lag(positives),
