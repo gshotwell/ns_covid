@@ -1,6 +1,10 @@
 library(drake)
+library(git2r)
 source("data.R")
 download.file("https://novascotia.ca/coronavirus/data/COVID-19-data.csv", "input.csv")
+repo <- repository()
+git2r::commit(repo, all = TRUE, message = "auto-update")
+
 plan <- drake_plan(
   raw_data = readr::read_csv("input.csv",
                                skip = 1),
