@@ -34,31 +34,28 @@ The first plot is a plot of total positive tests over time. The red line shows a
 ```{r plots, echo = FALSE, warning=FALSE, message=FALSE}
 theme_set(theme_minimal())
 
-covid %>% 
+p <- covid %>% 
   select(date, actual_cases = positives, no_action) %>% 
   pivot_longer(c("actual_cases", "no_action"), names_to = "type", values_to = "cases") %>% 
   mutate(Scenario = factor(type, levels = c("no_action", "actual_cases"))) %>% 
   ggplot(aes(x  = date, y = cases, group = Scenario, colour = Scenario)) +
   scale_color_manual(values = c("red", "black"), labels = c("No Intervention", "Actual Cases")) +
   geom_line() +
-  geom_vline(xintercept = lubridate::ymd("2020-03-22"), 
-             colour = "gray") +
-  annotate("text", 
-           x = lubridate::ymd("2020-03-22") - 0.4, 
-           y = 300, 
-           label = "State of Emergency", 
-           color = "gray",
-           angle = 90) +
   labs(y = "Positive Tests",
        x = "Date",
        title = "Nova Scotia COVID Cases") 
+ggplotly(p)
+
+q <- p +
+  scale_y_log10() +
+  ylab("Positive Tests (log scale)") 
+ggplotly(q)
 ```
 
 It's also useful to track active cases which are all cases which haven't recovered yet.
 
 ```{r, echo = FALSE, warning=FALSE, message=FALSE}
-
-covid %>% 
+p <-  covid %>% 
   select(date, total = positives, recovered, in_hospital) %>% 
   mutate(active = total - recovered) %>% 
   select(-total) %>% 
@@ -70,7 +67,7 @@ covid %>%
   labs(y = "Number of people",
        x = "Date",
        title = "Nova Scotia Covid Cases")
-
+ggplotly(p)
 ```
 
 
@@ -79,7 +76,7 @@ covid %>%
 I stole this plot from an excellent [data visualization](https://aatishb.com/covidtrends/) of covid trends. Each point is a day and it shows the sum of new cases in the previous five days against the number of total cases. I chose a five day sum because that's about the mean incubation period for COVID-19.
 
 ```{r, echo = FALSE, warning=FALSE, message=FALSE}
-ggplot(covid, aes(x = positives, y = five_day_cases)) +
+p <- ggplot(covid, aes(x = positives, y = five_day_cases)) +
   geom_point() +
   geom_smooth(se = FALSE, size = 0.5, alpha = 0.1) +
   geom_vline(xintercept = 41, 
@@ -93,6 +90,7 @@ ggplot(covid, aes(x = positives, y = five_day_cases)) +
   labs(y = "Cases in previous five days",
        x = "Total cases",
        title = "Nova Scotia COVID cases")
+ggplotly(p)
 ```
 
 ## Tests
@@ -100,25 +98,29 @@ ggplot(covid, aes(x = positives, y = five_day_cases)) +
 Next we look at tests. The first one shows how great the microbiology lab has been in ramping up testing capacity. This is [incredible](https://www.cbc.ca/news/canada/nova-scotia/covid-19-microbiology-lab-testing-health-care-1.5515115) and they deserve a great deal of thanks from all of us. I would be sending gift baskets of home made saurkraut and miso if that didn't violate social distancing rules.
 
 ```{r, echo = FALSE, warning=FALSE, message=FALSE}
-ggplot(covid, aes(x  = date, y = daily_tests)) +
+p <- ggplot(covid, aes(x  = date, y = daily_tests)) +
   geom_point() +
   geom_line() +
   labs(y = "Test per day",
        x = "Date",
        title = "Nova Scotia COVID Tests") 
+ggplotly(p)
 ```
 
 The last thing to look at is the positive rate for our testing. This should be read in conjunction with the previous chart because if we test a lot of people, the positive rate will probably go down even though nothing changed about the disease.
 
 ```{r, echo = FALSE, warning=FALSE, message=FALSE}
-ggplot(covid, aes(x  = date, 
-                  y = daily_pos / daily_tests,
+p <- covid %>% 
+  mutate(positive_rate = daily_pos / daily_tests) %>% 
+  ggplot(aes(x  = date, 
+                  y = positive_rate,
                   size = daily_tests)) +
   geom_point() +
   scale_y_continuous(labels = scales::percent)+
   labs(y = "Positive rate",
        x = "Date",
        title = "Nova Scotia COVID tests") 
+ggplotly(p)
 ```
 
 
