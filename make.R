@@ -5,8 +5,6 @@ source("data.R")
 
 download.file("https://novascotia.ca/coronavirus/data/COVID-19-data.csv", "input.csv")
 
-
-
 update_git <- function(output) {
   repo <- repository()
   git2r::commit(repo, all = TRUE, message = "auto-update")
