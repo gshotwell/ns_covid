@@ -57,10 +57,9 @@ It's also useful to track active cases which are all cases which haven't recover
 p <-  covid %>% 
   select(date, total = positives, recovered) %>% 
   mutate(active = total - recovered) %>% 
-  select(-total) %>% 
   pivot_longer(-date, names_to = "group", values_to = "number") %>% 
-  mutate(group = factor(group, levels = c("active",  "recovered", "in_hospital", "deaths"),
-                        labels = c("Active",  "Recovered", "Hospital", "Deaths"))) %>% 
+  mutate(group = factor(group, levels = c("total", "active",  "recovered", "in_hospital", "deaths"),
+                        labels = c("Total", "Active",  "Recovered", "Hospital", "Deaths"))) %>% 
   ggplot(aes(x = date, y = number, group = group, colour = group)) +
   geom_line() +
   labs(y = "Number of people",
