@@ -45,6 +45,10 @@ p <- covid %>%
        x = "Date",
        title = "Nova Scotia COVID Cases") 
 ggplotly(p)
+
+q <- p +
+  scale_y_log10()
+ggplotly(q)
 ```
 
 It's also useful to track active cases which are all cases which haven't recovered yet.
