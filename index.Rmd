@@ -19,36 +19,27 @@ covid <- covid %>%
          daily_tests = daily_pos + daily_neg,
          date = lubridate::ymd(date),
          five_day_cases = roll_sum(daily_pos, 5, fill = NA, align = "right"))
-covid$no_action <- 3
-for (i in 2:nrow(covid)) {
-  covid$no_action[i] <- covid$no_action[(i - 1)] * 1.35
-}
-covid$no_action <- round(covid$no_action, 0)
 ```
 # Data 
 
 The data comes from [daily reports](https://novascotia.ca/coronavirus/#cases) from the Nova Scotia Government which I record in a [Github Repo](https://github.com/GShotwell/ns_covid).
 
-The first plot is a plot of total positive tests over time. The red line shows a 35% daily growth rate, which is about what would've happened had we not undertaken any public policy interventions. The black line is the actual cases. 
-
 ```{r plots, echo = FALSE, warning=FALSE, message=FALSE}
 theme_set(theme_minimal())
 
 p <- covid %>% 
-  select(date, actual_cases = positives, no_action) %>% 
-  pivot_longer(c("actual_cases", "no_action"), names_to = "type", values_to = "cases") %>% 
-  mutate(Scenario = factor(type, levels = c("no_action", "actual_cases"))) %>% 
-  ggplot(aes(x  = date, y = cases, group = Scenario, colour = Scenario)) +
-  scale_color_manual(values = c("red", "black"), labels = c("No Intervention", "Actual Cases")) +
+  select(date, total = positives, central, western, northern, eastern, central) %>% 
+  pivot_longer(-date, names_to = "Region", values_to = "cases") %>% 
+  mutate(Region = factor(Region, 
+                         levels = c("total", "central", "western", "eastern", "northern"),
+                         labels = c("All cases", "Central", "Western", "Eastern", "Northern"))) %>% 
+  ggplot(aes(x  = date, y = cases, group = Region, colour = Region)) +
   geom_line() +
   labs(y = "Positive Tests",
        x = "Date",
        title = "Nova Scotia COVID Cases") 
 ggplotly(p)
 
-q <- p +
-  scale_y_log10()
-ggplotly(q)
 ```
 
 It's also useful to track active cases which are all cases which haven't recovered yet.
@@ -71,7 +62,7 @@ ggplotly(p)
 
 
 
-I stole this plot from an excellent [data visualization](https://aatishb.com/covidtrends/) of covid trends. Each point is a day and it shows the sum of new cases in the previous five days against the number of total cases. I chose a five day sum because that's about the mean incubation period for COVID-19.
+I stole this plot from an excellent [data visualization](https://aatishb.com/covidtrends/) of covid trends. Each point is a day and it shows the sum of new cases in the previous five days against the number of total cases. I chose a five day sum because that's about the mean incubation period for COVID-19. 
 
 ```{r, echo = FALSE, warning=FALSE, message=FALSE}
 p <- ggplot(covid, aes(x = positives, y = five_day_cases)) +
@@ -129,7 +120,6 @@ Here is the raw data I collect, please let me know if I've made any mistakes in 
 ```{r, echo = FALSE, warning=FALSE, message=FALSE}
 covid %>% 
   arrange(desc(date)) %>% 
-  select(-deaths) %>% 
   DT::datatable(rownames = FALSE) 
 ```
 

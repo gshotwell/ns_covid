@@ -7,12 +7,11 @@ update_git <- function(output) {
   git2r::commit(repo, all = TRUE, message = "auto-update")
 }
 
-process_covid <- function(covid) {
-  covid$Hospitalized <- NULL
-  covid <- covid[, 1:11]
+process_covid <- function(raw_data) {
+  raw_data$Hospitalized <- NULL
+  covid <- raw_data[, 1:11]
   names(covid) <- tolower(names(covid))
-  names(covid)[1:6] <- c("date", "new_cases", "negatives", "recovered",
-                    "in_hospital", "deaths")
+  names(covid)[1:3] <- c("date", "new_cases", "negatives")
   covid$positives <- cumsum(covid$new_cases)
   write.csv(covid, "ns_daily_covid.csv")
   saveRDS(covid, "covid.Rds")
