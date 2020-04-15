@@ -1,5 +1,4 @@
 library(git2r)
-source("data.R")
 
 download.file("https://novascotia.ca/coronavirus/data/COVID-19-data.csv", "input.csv")
 update_git <- function(output) {
