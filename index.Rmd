@@ -18,7 +18,8 @@ covid <- covid %>%
          daily_neg = negatives - lag(negatives),
          daily_tests = daily_pos + daily_neg,
          date = lubridate::ymd(date),
-         five_day_cases = roll_sum(daily_pos, 5, fill = NA, align = "right"))
+         five_day_cases = roll_sum(daily_pos, 5, fill = NA, align = "right"),
+         total_deaths = cumsum(deaths))
 ```
 # Data 
 
@@ -46,10 +47,19 @@ It's also useful to track active cases which are all cases which haven't recover
 
 ```{r, echo = FALSE, warning=FALSE, message=FALSE}
 p <-  covid %>% 
-  select(date, total = positives, recovered) %>% 
-  mutate(active = total - recovered) %>% 
+  mutate(in_hospital = icu + `non-icu`) %>% 
+  select(date, 
+         total = positives, 
+         recovered, 
+         in_hospital,
+         deaths = total_deaths) %>% 
+  mutate(active = total - recovered - deaths) %>% 
   pivot_longer(-date, names_to = "group", values_to = "number") %>% 
-  mutate(group = factor(group, levels = c("total", "active",  "recovered", "in_hospital", "deaths"),
+  mutate(group = factor(group, levels = c("total", 
+                                          "active",  
+                                          "recovered", 
+                                          "in_hospital",
+                                          "deaths"),
                         labels = c("Total", "Active",  "Recovered", "Hospital", "Deaths"))) %>% 
   ggplot(aes(x = date, y = number, group = group, colour = group)) +
   geom_line() +
