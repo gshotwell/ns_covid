@@ -23,8 +23,8 @@ raw_data = readr::read_csv("input.csv",  skip = 1)
 if (max(raw_data$Date) >= Sys.Date()) {
   processed = process_covid(raw_data)
   report = rmarkdown::render(
+    "index.Rmd",
     params = list(data = processed),
-    knitr_in("index.Rmd"),
     output_file = file_out("index.html"),
     quiet = TRUE
   )
