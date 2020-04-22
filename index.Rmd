@@ -18,7 +18,7 @@ covid <- covid %>%
          daily_neg = negatives - lag(negatives),
          daily_tests = daily_pos + daily_neg,
          date = lubridate::ymd(date),
-         five_day_cases = roll_sum(daily_pos, 5, fill = NA, align = "right"),
+         five_day_cases = roll_sum(daily_pos, 7, fill = NA, align = "right"),
          total_deaths = cumsum(deaths))
 ```
 # Data 

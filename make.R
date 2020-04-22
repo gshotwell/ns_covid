@@ -25,7 +25,7 @@ if (max(raw_data$Date) >= Sys.Date()) {
   report = rmarkdown::render(
     "index.Rmd",
     params = list(data = processed),
-    output_file = file_out("index.html"),
+    output_file = "index.html",
     quiet = TRUE
   )
   git = update_git(report)
