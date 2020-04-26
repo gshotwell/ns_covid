@@ -19,6 +19,7 @@ covid <- covid %>%
          daily_tests = daily_pos + daily_neg,
          date = lubridate::ymd(date),
          five_day_cases = roll_sum(daily_pos, 5, fill = NA, align = "right"),
+         five_day_tests = roll_sum(daily_tests, 5, fill = NA, align = "right"),
          total_deaths = cumsum(deaths))
 ```
 # Data 
@@ -97,29 +98,33 @@ ggplotly(p)
 Next we look at tests. The first one shows how great the microbiology lab has been in ramping up testing capacity. This is [incredible](https://www.cbc.ca/news/canada/nova-scotia/covid-19-microbiology-lab-testing-health-care-1.5515115) and they deserve a great deal of thanks from all of us. I would be sending gift baskets of home made saurkraut and miso if that didn't violate social distancing rules.
 
 ```{r, echo = FALSE, warning=FALSE, message=FALSE}
-p <- ggplot(covid, aes(x  = date, y = daily_tests)) +
+p <- ggplot(covid, aes(x  = date, y = five_day_tests)) +
   geom_point() +
   geom_line() +
-  labs(y = "Test per day",
+  labs(y = "Tests over previous five days",
        x = "Date",
        title = "Nova Scotia COVID Tests") 
 ggplotly(p)
 ```
 
-The last thing to look at is the positive rate for our testing. This should be read in conjunction with the previous chart because if we test a lot of people, the positive rate will probably go down even though nothing changed about the disease.
+The last thing to look at is the positive rate for our testing. This is useful because we want the positive test rate to stay below like 2% before reopening parts of the province. 
 
 ```{r, echo = FALSE, warning=FALSE, message=FALSE}
-p <- covid %>% 
-  mutate(positive_rate = daily_pos / daily_tests) %>% 
+
+
+covid %>% 
+  mutate(mean_pos_rate = five_day_cases / five_day_tests) %>% 
   ggplot(aes(x  = date, 
-                  y = positive_rate,
-                  size = daily_tests)) +
+                  y = mean_pos_rate)) +
+    geom_hline(yintercept = 0.02, colour = "gray", weight = 0.01) +
   geom_point() +
-  scale_y_continuous(labels = scales::percent)+
+  geom_line() +
+
+  scale_y_continuous(labels = scales::percent, limits = c(0, NA)) +
   labs(y = "Positive rate",
        x = "Date",
-       title = "Nova Scotia COVID tests") 
-ggplotly(p)
+       title = "Nova Scotia COVID positive test rate", 
+       subtitle = "Five day rolling average") 
 ```
 
 
