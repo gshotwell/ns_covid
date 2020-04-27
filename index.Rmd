@@ -39,7 +39,7 @@ p <- covid %>%
   geom_line() +
   labs(y = "Positive Tests",
        x = "Date",
-       title = "Nova Scotia COVID Cases") 
+       title = "Nova Scotia COVID Cases")
 ggplotly(p)
 
 ```
