@@ -79,14 +79,6 @@ I stole this plot from an excellent [data visualization](https://aatishb.com/cov
 p <- ggplot(covid, aes(x = positives, y = five_day_cases)) +
   geom_point() +
   geom_smooth(se = FALSE, size = 0.5, alpha = 0.1) +
-  geom_vline(xintercept = 41, 
-             colour = "gray") +
-  annotate("text", 
-           x = 37, 
-           y = 60, 
-           label = "State of Emergency", 
-           color = "gray",
-           angle = 90) +
   labs(y = "Cases in previous five days",
        x = "Total cases",
        title = "Nova Scotia COVID cases")
@@ -98,13 +90,13 @@ ggplotly(p)
 Next we look at tests. The first one shows how great the microbiology lab has been in ramping up testing capacity. This is [incredible](https://www.cbc.ca/news/canada/nova-scotia/covid-19-microbiology-lab-testing-health-care-1.5515115) and they deserve a great deal of thanks from all of us. I would be sending gift baskets of home made saurkraut and miso if that didn't violate social distancing rules.
 
 ```{r, echo = FALSE, warning=FALSE, message=FALSE}
-p <- ggplot(covid, aes(x  = date, y = five_day_tests)) +
+ggplot(covid, aes(x  = date, y = five_day_tests / 5)) +
   geom_point() +
   geom_line() +
-  labs(y = "Tests over previous five days",
+  labs(y = "Tests per day",
        x = "Date",
-       title = "Nova Scotia COVID Tests") 
-ggplotly(p)
+       title = "Nova Scotia COVID Tests",
+       subtitle = "Five day rolling average") 
 ```
 
 The last thing to look at is the positive rate for our testing. This is useful because we want the positive test rate to stay below like 2% before reopening parts of the province. 
