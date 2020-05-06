@@ -29,7 +29,7 @@ The data comes from [daily reports](https://novascotia.ca/coronavirus/#cases) fr
 ```{r plots, echo = FALSE, warning=FALSE, message=FALSE}
 theme_set(theme_minimal())
 
-p <- covid %>% 
+covid %>% 
   select(date, total = positives, central, western, northern, eastern, central) %>% 
   pivot_longer(-date, names_to = "Region", values_to = "cases") %>% 
   mutate(Region = factor(Region, 
@@ -40,14 +40,13 @@ p <- covid %>%
   labs(y = "Positive Tests",
        x = "Date",
        title = "Nova Scotia COVID Cases")
-ggplotly(p)
 
 ```
 
 It's also useful to track active cases which are all cases which haven't recovered yet.
 
 ```{r, echo = FALSE, warning=FALSE, message=FALSE}
-p <-  covid %>% 
+covid %>% 
   mutate(in_hospital = icu + `non-icu`) %>% 
   select(date, 
          total = positives, 
@@ -67,7 +66,6 @@ p <-  covid %>%
   labs(y = "Number of people",
        x = "Date",
        title = "Nova Scotia Covid Cases")
-ggplotly(p)
 ```
 
 
