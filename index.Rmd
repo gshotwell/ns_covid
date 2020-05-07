@@ -79,10 +79,22 @@ p <- ggplot(covid, aes(
   y = five_day_cases)) +
   geom_point(aes(text = sprintf('Date: %s', date))) +
   geom_smooth(se = FALSE, size = 0.5, alpha = 0.1) +
+  theme_minimal() +
   labs(y = "Cases in previous five days",
        x = "Total cases",
        title = "Nova Scotia COVID cases")
 ggplotly(p)
+
+ggplot(covid, aes(
+  x = date,
+  y = five_day_cases)) +
+  geom_point(aes(text = sprintf('Date: %s', date))) +
+  geom_smooth(se = FALSE, size = 0.5, alpha = 0.1) +
+  scale_y_continuous(limits = c(0, NA)) +
+  theme_minimal() +
+  labs(y = "Cases in previous five days",
+       x = "Date",
+       title = "Nova Scotia COVID cases") 
 ```
 
 ## Tests
