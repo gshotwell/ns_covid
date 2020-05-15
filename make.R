@@ -20,7 +20,7 @@ process_covid <- function(raw_data) {
 
 raw_data = readr::read_csv("input.csv",  skip = 1)
 
-if (max(raw_data$Date) >= Sys.Date()) {
+#if (max(raw_data$Date) >= Sys.Date()) {
   processed = process_covid(raw_data)
   report = rmarkdown::render(
     "index.Rmd",
@@ -29,5 +29,5 @@ if (max(raw_data$Date) >= Sys.Date()) {
     quiet = TRUE
   )
   git = update_git(report)
-}
+#}
 
