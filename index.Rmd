@@ -21,7 +21,8 @@ covid <- covid %>%
          five_day_cases = roll_sum(daily_pos, 5, fill = NA, align = "right"),
          five_day_tests = roll_sum(daily_tests, 5, fill = NA, align = "right"),
          total_deaths = cumsum(deaths),
-         active_cases = positives - recovered - total_deaths)
+         active_cases = positives - recovered - total_deaths) %>% 
+  filter(date > Sys.Date() - 30)
 
 active_cases <- covid$active_cases[nrow(covid)]
 ```
@@ -33,22 +34,8 @@ The data comes from [daily reports](https://novascotia.ca/coronavirus/#cases) fr
 
 ```{r plots, echo = FALSE, warning=FALSE, message=FALSE}
 theme_set(theme_minimal())
-
-covid %>% 
-  select(date, total = positives, central, western, northern, eastern, central) %>% 
-  pivot_longer(-date, names_to = "Region", values_to = "cases") %>% 
-  mutate(Region = factor(Region, 
-                         levels = c("total", "central", "western", "eastern", "northern"),
-                         labels = c("All cases", "Central", "Western", "Eastern", "Northern"))) %>% 
-  ggplot(aes(x  = date, y = cases, group = Region, colour = Region)) +
-  geom_line() +
-  labs(y = "Positive Tests",
-       x = "Date",
-       title = "Nova Scotia COVID Cases")
-
 ```
 
-It's also useful to track active cases which are all cases which haven't recovered yet.
 
 ```{r, echo = FALSE, warning=FALSE, message=FALSE}
 covid %>% 
