@@ -13,15 +13,12 @@ library(RcppRoll)
 library(plotly)
 covid <- readRDS("covid.Rds")
 covid <- covid %>% 
-  mutate(total_tests = positives + negatives,
-         daily_pos = positives - lag(positives),
-         daily_neg = negatives - lag(negatives),
-         daily_tests = daily_pos + daily_neg,
-         date = lubridate::ymd(date),
-         five_day_cases = roll_sum(daily_pos, 5, fill = NA, align = "right"),
+  mutate(daily_tests = tests - lag(tests),
+    date = lubridate::ymd(date),
+         five_day_cases = roll_sum(new_cases, 5, fill = NA, align = "right"),
          five_day_tests = roll_sum(daily_tests, 5, fill = NA, align = "right"),
          total_deaths = cumsum(deaths),
-         active_cases = positives - recovered - total_deaths) %>% 
+         active_cases = positives - resolved - total_deaths) %>% 
   filter(date > Sys.Date() - 30)
 
 active_cases <- covid$active_cases[nrow(covid)]
@@ -42,10 +39,10 @@ covid %>%
   mutate(in_hospital = icu + `non-icu`) %>% 
   select(date, 
          total = positives, 
-         recovered, 
+         resolved, 
          in_hospital,
          deaths = total_deaths) %>% 
-  mutate(active = total - recovered - deaths) %>% 
+  mutate(active = total - resolved - deaths) %>% 
   pivot_longer(-date, names_to = "group", values_to = "number") %>% 
   mutate(group = factor(group, levels = c("total", 
                                           "active",  
@@ -130,6 +127,7 @@ Here is the raw data I collect, please let me know if I've made any mistakes in 
 
 ```{r, echo = FALSE, warning=FALSE, message=FALSE}
 covid %>% 
+  select(date, active_cases, positives, resolved,  deaths, tests) %>% 
   arrange(desc(date)) %>% 
   DT::datatable(rownames = FALSE) 
 ```
