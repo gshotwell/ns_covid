@@ -127,7 +127,7 @@ Here is the raw data I collect, please let me know if I've made any mistakes in 
 
 ```{r, echo = FALSE, warning=FALSE, message=FALSE}
 covid %>% 
-  select(date, active_cases, positives, resolved,  deaths, tests) %>% 
+  select(date, active_cases, five_day_cases, positives, resolved,  deaths, tests) %>% 
   arrange(desc(date)) %>% 
   DT::datatable(rownames = FALSE) 
 ```
