@@ -8,9 +8,10 @@ params:
 ---
 
 ```{r setup, include=FALSE}
-library(tidyverse)
+library(dplyr)
+library(ggplot2)
 library(RcppRoll)
-library(plotly)
+library(readr)
 
 raw_data  <-  readr::read_csv("https://novascotia.ca/coronavirus/data/ns-covid19-data.csv", skip = 1)
 
@@ -37,7 +38,6 @@ active_cases <- covid$active[nrow(covid)]
 # Data 
 
 There are **`r active_cases`** active cases in Nova Scotia on `r max(covid$date)`.
-It has been **`r streak`** days since our last case.
 
 The data comes from [daily reports](https://novascotia.ca/coronavirus/#cases) from the Nova Scotia Government which I record in a [Github Repo](https://github.com/GShotwell/ns_covid).
 

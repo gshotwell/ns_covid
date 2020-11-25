@@ -19,6 +19,10 @@ jobs:
         run: |
           install.packages("remotes")
           remotes::install_cran("rmarkdown")
+          remotes::install_cran("dplyr")
+          remotes::install_cran("RcppRoll")
+          remotes::install_cran("readr")
+          remotes::install_cran("ggplot2")
         shell: Rscript {0}
       - name: Render
         run: Rscript -e 'rmarkdown::render("index.Rmd")'
