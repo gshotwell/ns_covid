@@ -30,7 +30,10 @@ covid <- covid %>%
   mutate(total_deaths = cumsum(deaths)) %>% 
   mutate(active = positives - resolved - total_deaths) %>% 
   mutate(wave = ifelse(date < "2020-10-21", "Wave 1", "Wave 2")) %>% 
-  arrange(date)
+  arrange(date) %>% 
+    group_by(wave) %>% 
+  mutate(date_num = date - min(date)) %>%
+  janitor::clean_names()
 
 active_cases <- covid$active[nrow(covid)]
 
@@ -49,8 +52,6 @@ theme_set(theme_minimal())
 ```{r, echo = FALSE, warning=FALSE, message=FALSE}
 
 covid %>% 
-  group_by(wave) %>% 
-  mutate(date_num = date - min(date)) %>%
   ggplot(aes(x = date_num, y = active, group = wave, colour = wave)) +
   geom_line() +
     labs(y = "Active Cases",
@@ -60,8 +61,6 @@ covid %>%
   theme_light()
 
 covid %>% 
-  group_by(wave) %>% 
-  mutate(date_num = date - min(date)) %>%
   mutate(roll_cases = roll_mean(new_cases, 7, fill = NA, align = "right")) %>% 
   ggplot(aes(x = date_num, y = roll_cases, group = wave, colour = wave)) +
   geom_line() +
@@ -72,3 +71,29 @@ covid %>%
   theme_light()
 
 ```
+
+
+# Tests
+
+```{r echo=, message=FALSE, warning=FALSE}
+
+plot_df <- covid %>% 
+  ungroup() %>% 
+  arrange(date) %>% 
+  mutate(tests = positives + as.numeric(total_neg),
+         daily_tests = tests - lag(tests),
+         positive_rate = new_cases / daily_tests,
+         positive_rate_roll = roll_mean(positive_rate, 7, fill = NA, align = "right", na.rm = TRUE)) 
+
+plot_df %>% 
+   ggplot(aes(x = date_num, y = positive_rate_roll, group = wave, colour = wave)) +
+  geom_line() +
+    labs(y = "Positive rate (7 day average)",
+       x = "Days since outbreak began",
+       title = "Nova Scotia Covid Waves",
+       subtitle = "Wave 2 began on October 21") +
+  scale_y_continuous(labels = scales::percent) +
+  theme_light()
+
+```
+

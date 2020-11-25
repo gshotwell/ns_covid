@@ -23,6 +23,7 @@ jobs:
           remotes::install_cran("RcppRoll")
           remotes::install_cran("readr")
           remotes::install_cran("ggplot2")
+          remotes::install_cran("janitor")
         shell: Rscript {0}
       - name: Render
         run: Rscript -e 'rmarkdown::render("index.Rmd")'
