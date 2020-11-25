@@ -8,7 +8,7 @@ update_git <- function(output) {
 
 process_covid <- function(raw_data) {
   raw_data$Hospitalized <- NULL
-  covid <- raw_data[, 1:7]
+  covid <- raw_data[, 1:8]
   names(covid) <- tolower(names(covid))
   names(covid)[1:2] <- c("date", "new_cases")
   covid$positives <- cumsum(covid$new_cases)

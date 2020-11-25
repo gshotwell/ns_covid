@@ -11,26 +11,36 @@ params:
 library(tidyverse)
 library(RcppRoll)
 library(plotly)
-covid <- readRDS("covid.Rds")
+
+download.file("https://novascotia.ca/coronavirus/data/ns-covid19-data.csv", "input.csv")
+
+process_covid <- function(raw_data) {
+  raw_data$Hospitalized <- NULL
+  covid <- raw_data[, 1:8]
+  names(covid) <- tolower(names(covid))
+  names(covid)[1:2] <- c("date", "new_cases")
+  covid$positives <- cumsum(covid$new_cases)
+  write.csv(covid, "ns_daily_covid.csv")
+  return(covid)
+}
+
+
+raw_data = readr::read_csv("input.csv",  skip = 1)
+
+covid <- process_covid(raw_data)
 covid <- covid %>% 
-  mutate(daily_tests = tests - lag(tests),
-    date = lubridate::ymd(date),
-         five_day_cases = roll_sum(new_cases, 5, fill = NA, align = "right"),
-         five_day_tests = roll_sum(daily_tests, 5, fill = NA, align = "right"),
-         total_deaths = cumsum(deaths),
-         active_cases = positives - resolved - total_deaths) %>% 
-  filter(date > Sys.Date() - 30)
+  mutate(total_deaths = cumsum(deaths)) %>% 
+  mutate(active = positives - resolved - total_deaths) %>% 
+  select(date, active) %>% 
+  mutate(wave = ifelse(date < "2020-10-21", "Wave 1", "Wave 2")) %>% 
+  arrange(date)
 
-active_cases <- covid$active_cases[nrow(covid)]
+active_cases <- covid$active[nrow(covid)]
 
-streak <- covid %>% 
-  arrange(desc(date)) 
-streak <- which(streak$new_cases != 0 )[1] - 1
 ```
 # Data 
 
-There are **`r active_cases`** active cases in Nova Scotia.
-It has been **`r streak`** days since our last case.
+There are **`r active_cases`** active cases in Nova Scotia on `r max(covid$date)`.
 
 The data comes from [daily reports](https://novascotia.ca/coronavirus/#cases) from the Nova Scotia Government which I record in a [Github Repo](https://github.com/GShotwell/ns_covid).
 
@@ -41,89 +51,14 @@ theme_set(theme_minimal())
 
 ```{r, echo = FALSE, warning=FALSE, message=FALSE}
 covid %>% 
-  mutate(in_hospital = icu + `non-icu`) %>% 
-  select(date, 
-         total = positives, 
-         resolved, 
-         in_hospital,
-         deaths = total_deaths) %>% 
-  mutate(active = total - resolved - deaths) %>% 
-  pivot_longer(-date, names_to = "group", values_to = "number") %>% 
-  mutate(group = factor(group, levels = c("total", 
-                                          "active",  
-                                          "recovered", 
-                                          "in_hospital",
-                                          "deaths"),
-                        labels = c("Total", "Active",  "Recovered", "Hospital", "Deaths"))) %>% 
-  ggplot(aes(x = date, y = number, group = group, colour = group)) +
+  group_by(wave) %>% 
+  mutate(date_num = date - min(date)) %>% 
+  ggplot(aes(x = date_num, y = active, group = wave, colour = wave)) +
   geom_line() +
-  labs(y = "Number of people",
-       x = "Date",
-       title = "Nova Scotia Covid Cases")
+    labs(y = "Active Cases",
+       x = "Days since outbreak began",
+       title = "Nova Scotia Covid Waves",
+       subtitle = "Wave 2 began on October 21") +
+  theme_light()
+
 ```
-
-
-
-
-I stole this plot from an excellent [data visualization](https://aatishb.com/covidtrends/) of covid trends. Each point is a day and it shows the sum of new cases in the previous five days against the number of total cases. I chose a five day sum because that's about the mean incubation period for COVID-19. 
-
-```{r, echo = FALSE, warning=FALSE, message=FALSE}
-ggplot(covid, aes(
-  x = date,
-  y = five_day_cases)) +
-  geom_point(aes(text = sprintf('Date: %s', date))) +
-  geom_smooth(se = FALSE, size = 0.5, alpha = 0.1) +
-  scale_y_continuous(limits = c(0, NA)) +
-  theme_minimal() +
-  labs(y = "Cases in previous five days",
-       x = "Date",
-       title = "Nova Scotia COVID cases") 
-```
-
-## Tests
-
-Next we look at tests. The first one shows how great the microbiology lab has been in ramping up testing capacity. This is [incredible](https://www.cbc.ca/news/canada/nova-scotia/covid-19-microbiology-lab-testing-health-care-1.5515115) and they deserve a great deal of thanks from all of us. I would be sending gift baskets of home made saurkraut and miso if that didn't violate social distancing rules.
-
-```{r, echo = FALSE, warning=FALSE, message=FALSE}
-ggplot(covid, aes(x  = date, y = five_day_tests / 5)) +
-  geom_point() +
-  geom_line() +
-  labs(y = "Tests per day",
-       x = "Date",
-       title = "Nova Scotia COVID Tests",
-       subtitle = "Five day rolling average") 
-```
-
-The last thing to look at is the positive rate for our testing. This is useful because we want the positive test rate to stay below like 2% before reopening parts of the province. 
-
-```{r, echo = FALSE, warning=FALSE, message=FALSE}
-
-
-covid %>% 
-  mutate(mean_pos_rate = five_day_cases / five_day_tests) %>% 
-  ggplot(aes(x  = date, 
-                  y = mean_pos_rate)) +
-    geom_hline(yintercept = 0.02, colour = "gray", weight = 0.01) +
-  geom_point() +
-  geom_line() +
-
-  scale_y_continuous(labels = scales::percent, limits = c(0, NA)) +
-  labs(y = "Positive rate",
-       x = "Date",
-       title = "Nova Scotia COVID positive test rate", 
-       subtitle = "Five day rolling average") 
-```
-
-
-# Raw data
-
-Here is the raw data I collect, please let me know if I've made any mistakes in recording this data. 
-
-```{r, echo = FALSE, warning=FALSE, message=FALSE}
-covid %>% 
-  select(date, active_cases, five_day_cases, positives, resolved,  deaths, tests) %>% 
-  arrange(desc(date)) %>% 
-  DT::datatable(rownames = FALSE) 
-```
-
-
