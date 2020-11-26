@@ -62,6 +62,7 @@ covid %>%
   mutate(roll_cases = roll_mean(new_cases, 7, fill = NA, align = "right")) %>% 
   ggplot(aes(x = date_num, y = roll_cases, group = wave, colour = wave)) +
   geom_line() +
+  geom_point(aes(y = new_cases), alpha = 0.2) +
     labs(y = "New cases (7 day average)",
        x = "Days since outbreak began",
        title = "Nova Scotia Covid Waves",
