@@ -96,3 +96,16 @@ plot_df %>%
 
 ```
 
+```{r echo=, warning=FALSE}
+covid %>%
+  mutate(hospital = icu + non_icu) %>% 
+  ggplot(aes(x = date_num, y = hospital, group = wave, colour = wave)) +
+  geom_line() +
+    labs(y = "Hospitalized patients",
+       x = "Days since outbreak began",
+       title = "Nova Scotia Covid Waves",
+       subtitle = "Wave 2 began on October 21") +
+  theme_light()
+  
+```
+
