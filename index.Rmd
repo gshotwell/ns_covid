@@ -25,6 +25,7 @@ process_covid <- function(raw_data) {
 }
 
 covid <- process_covid(raw_data)
+
 covid <- covid %>% 
   mutate(total_deaths = cumsum(deaths)) %>% 
   mutate(active = positives - resolved - total_deaths) %>% 
@@ -46,12 +47,13 @@ The data comes from [daily reports](https://novascotia.ca/coronavirus/#cases) fr
 theme_set(theme_minimal())
 ```
 
+# Cases
 
 ```{r, echo = FALSE, warning=FALSE, message=FALSE}
 
 covid %>% 
   ggplot(aes(x = date_num, y = active, group = wave, colour = wave)) +
-  geom_line() +
+  geom_step() +
     labs(y = "Active Cases",
        x = "Days since outbreak began",
        title = "Nova Scotia Covid Waves",
@@ -82,11 +84,12 @@ plot_df <- covid %>%
   mutate(tests = positives + as.numeric(total_neg),
          daily_tests = tests - lag(tests),
          positive_rate = new_cases / daily_tests,
-         positive_rate_roll = roll_mean(positive_rate, 7, fill = NA, align = "right", na.rm = TRUE)) 
+         positive_rate_roll = roll_mean(positive_rate, 7, fill = NA, align = "center", na.rm = TRUE)) 
 
 plot_df %>% 
    ggplot(aes(x = date_num, y = positive_rate_roll, group = wave, colour = wave)) +
   geom_line() +
+  geom_point(aes(y = positive_rate), alpha = 0.3) +
     labs(y = "Positive rate (7 day average)",
        x = "Days since outbreak began",
        title = "Nova Scotia Covid Waves",
@@ -102,7 +105,7 @@ plot_df %>%
 covid %>%
   mutate(hospital = icu + non_icu) %>% 
   ggplot(aes(x = date_num, y = hospital, group = wave, colour = wave)) +
-  geom_line() +
+  geom_step() +
     labs(y = "Hospitalized patients",
        x = "Days since outbreak began",
        title = "Nova Scotia Covid Waves",
