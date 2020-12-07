@@ -19,6 +19,7 @@ process_covid <- function(raw_data) {
   covid <- raw_data[, 1:8]
   names(covid) <- tolower(names(covid))
   names(covid)[1:2] <- c("date", "new_cases")
+  names(covid)[names(covid) == "new_1"] <- "daily_tests"
   covid$positives <- cumsum(covid$new_cases)
   write.csv(covid, "ns_daily_covid.csv")
   return(covid)
@@ -107,9 +108,7 @@ case_df %>%
 plot_df <- covid %>% 
   ungroup() %>% 
   arrange(date) %>% 
-  mutate(tests = positives + as.numeric(total_neg),
-         daily_tests = tests - lag(tests),
-         positive_rate = new_cases / daily_tests,
+  mutate(positive_rate = new_cases / daily_tests,
          positive_rate_roll = roll_mean(positive_rate, 7, fill = NA, align = "center", na.rm = TRUE)) 
 
 plot_df %>% 
