@@ -62,7 +62,9 @@ covid %>%
   theme_light()
 
 case_df <- covid %>% 
-  mutate(roll_cases = roll_mean(new_cases, 7, fill = NA, align = "center"))
+  arrange(date) %>% 
+  mutate(roll_cases = roll_mean(new_cases, 7, fill = NA, align = "center")) %>% 
+  mutate(thirteen_day_cases = lag(new_cases, 14))
 
 ggplot(case_df, aes(x = date_num, y = roll_cases, group = wave, colour = wave)) +
   geom_line() +
