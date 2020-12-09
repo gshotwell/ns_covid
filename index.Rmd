@@ -63,7 +63,7 @@ covid %>%
 
 case_df <- covid %>% 
   arrange(date) %>% 
-  mutate(roll_cases = roll_mean(new_cases, 7, fill = NA, align = "center")) %>% 
+  mutate(roll_cases = roll_mean(new_cases, 7, fill = NA, align = "right")) %>% 
   mutate(thirteen_day_cases = lag(new_cases, 14))
 
 ggplot(case_df, aes(x = date_num, y = roll_cases, group = wave, colour = wave)) +
@@ -111,7 +111,7 @@ plot_df <- covid %>%
   ungroup() %>% 
   arrange(date) %>% 
   mutate(positive_rate = new_cases / daily_tests,
-         positive_rate_roll = roll_mean(positive_rate, 7, fill = NA, align = "center", na.rm = TRUE)) 
+         positive_rate_roll = roll_mean(positive_rate, 7, fill = NA, align = "right", na.rm = TRUE)) 
 
 plot_df %>% 
   ggplot(aes(x = date_num, y = positive_rate_roll, group = wave, colour = wave)) +
