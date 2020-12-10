@@ -37,7 +37,6 @@ covid <- covid %>%
   janitor::clean_names()
 
 active_cases <- covid$active[nrow(covid)]
-
 ```
 
 There are **`r active_cases`** active cases in Nova Scotia as of **`r max(covid$date)`**.
@@ -63,8 +62,8 @@ covid %>%
 
 case_df <- covid %>% 
   arrange(date) %>% 
-  mutate(roll_cases = roll_mean(new_cases, 7, fill = NA, align = "right")) %>% 
-  mutate(thirteen_day_cases = lag(new_cases, 14))
+  mutate(roll_cases = roll_mean(new_cases, 7, fill = NA, align = "right")) %>%
+  mutate(eight_day = roll_sum(new_cases, 8, fill = NA, align = "right"))
 
 ggplot(case_df, aes(x = date_num, y = roll_cases, group = wave, colour = wave)) +
   geom_line() +
