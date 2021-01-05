@@ -16,8 +16,6 @@ library(httr)
 library(tidyr)
 
 raw_data  <-  readr::read_csv("https://novascotia.ca/coronavirus/data/ns-covid19-data.csv", skip = 1)
-raw_data$Date[293 : nrow(raw_data)] <- seq.Date(ymd("2021-01-01"), ymd("2021-01-31"), by = "day")[nrow(raw_data) - 293]
-
 
 process_covid <- function(raw_data) {
   raw_data$Hospitalized <- NULL
