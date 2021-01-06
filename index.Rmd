@@ -136,13 +136,15 @@ resp <- tibble(raw = content(resp)$data)
 
 vaccines <- resp %>% 
   unnest_auto(raw) %>% 
-  select(date, change_vaccinations, change_vaccines_distributed, total_vaccinations)
+  select(date, change_vaccinations, change_vaccines_distributed, total_vaccinations, total_vaccines_distributed)
 
 vaccines <- vaccines %>% 
   filter(date > lubridate::ymd("2020-12-01")) %>% 
   mutate(date = lubridate::ymd(date),
          vaccinated = roll_sum(change_vaccinations, 7, fill = NA, align = "right") / 7,
-         vaccine_distributed = roll_sum(change_vaccines_distributed, 7, fill = NA, align = "right") / 7)
+         vaccine_distributed = roll_sum(change_vaccines_distributed, 7, fill = NA, align = "right") / 7) %>% 
+   mutate(in_freezer = total_vaccines_distributed - total_vaccinations) %>% 
+  arrange(date)
 
 plot_df <- case_df %>% 
   ungroup() %>% 
@@ -151,7 +153,18 @@ plot_df <- case_df %>%
   mutate(vaccine_ratio = total_vaccinations / active,
          vaccine_distributed_ratio = vaccinated / vaccine_distributed) %>% 
   filter(!is.na(vaccine_ratio))
+```
 
+There are `r vaccines$in_freezer[nrow(vaccines)]` vaccines sitting in Nova Scotian freezers.
+
+```{r message=FALSE, warning=FALSE, echo=FALSE}
+vaccines %>% 
+  ggplot(aes(x = date, y = in_freezer)) +
+  geom_path() +
+  labs(title = "Vaccines sitting uselessly in freezer",
+       subtitle = "Nova Scotia",
+       y = "Unused vaccine doses",
+       x = "Date")
 
 plot_df %>% 
   select(date, vaccinated, vaccine_distributed) %>% 
