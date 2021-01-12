@@ -158,13 +158,6 @@ plot_df <- case_df %>%
 There are `r scales::comma(vaccines$in_freezer[nrow(vaccines)])` vaccines sitting in Nova Scotian freezers.
 
 ```{r message=FALSE, warning=FALSE, echo=FALSE}
-vaccines %>% 
-  ggplot(aes(x = date, y = in_freezer)) +
-  geom_path() +
-  labs(title = "Vaccines sitting uselessly in freezer",
-       subtitle = "Nova Scotia",
-       y = "Unused vaccine doses",
-       x = "Date")
 plot_df %>% 
   select(date,  `Available` = total_vaccines_distributed, `Distributed` = total_vaccinations) %>% 
   pivot_longer(-date) %>% 
@@ -182,6 +175,14 @@ plot_df %>%
   scale_y_continuous(breaks = c(max(plot_df$total_vaccinations), 
                                 max(plot_df$total_vaccines_distributed, na.rm = TRUE)),
                      labels = scales::comma)
+
+vaccines %>% 
+  ggplot(aes(x = date, y = in_freezer)) +
+  geom_path() +
+  labs(title = "Vaccines sitting uselessly in freezer",
+       subtitle = "Nova Scotia",
+       y = "Unused vaccine doses",
+       x = "Date")
 
 plot_df %>% 
   ggplot(aes(x = date, y = vaccine_ratio)) +
