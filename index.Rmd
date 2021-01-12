@@ -155,7 +155,7 @@ plot_df <- case_df %>%
   filter(!is.na(vaccine_ratio))
 ```
 
-There are `r vaccines$in_freezer[nrow(vaccines)]` vaccines sitting in Nova Scotian freezers.
+There are `r scales::comma(vaccines$in_freezer[nrow(vaccines)])` vaccines sitting in Nova Scotian freezers.
 
 ```{r message=FALSE, warning=FALSE, echo=FALSE}
 vaccines %>% 
@@ -165,17 +165,23 @@ vaccines %>%
        subtitle = "Nova Scotia",
        y = "Unused vaccine doses",
        x = "Date")
-
 plot_df %>% 
-  select(date, vaccinated, vaccine_distributed) %>% 
-  rename(`Doses administered` = vaccinated,
-         `Doses received` = vaccine_distributed) %>% 
+  select(date,  `Available` = total_vaccines_distributed, `Distributed` = total_vaccinations) %>% 
   pivot_longer(-date) %>% 
-  ggplot(aes(x = date, y = value, group = name, colour = name)) +
-  geom_path() +
-  labs(y = "Sevem day average", 
-       x = "Date",
-       title = "Nova Scotia Vaccination Rate")
+  filter(date > "2020-12-21") %>% 
+  ggplot(aes(x = date, y = value, group = name, fill = name)) +
+  geom_ribbon(aes(ymax = value, ymin = 0)) +
+  labs(
+    title = "Unused vaccine doses",
+    subtitle = "Nova scotia",
+    x = "Date",
+    y = "Doses",
+    fill = "Doses"
+  ) +
+  scale_fill_viridis_d() +
+  scale_y_continuous(breaks = c(max(plot_df$total_vaccinations), 
+                                max(plot_df$total_vaccines_distributed, na.rm = TRUE)),
+                     labels = scales::comma)
 
 plot_df %>% 
   ggplot(aes(x = date, y = vaccine_ratio)) +
