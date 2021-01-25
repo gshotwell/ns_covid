@@ -28,23 +28,28 @@ process_covid <- function(raw_data) {
   return(covid)
 }
 
-covid <- process_covid(raw_data)
+covid_old <- process_covid(raw_data)
+
+resp <- GET("https://api.covid19tracker.ca/reports/province/ns")
+covid <- tibble(raw = content(resp)$data) %>% 
+  unnest_auto(raw)
 
 covid <- covid %>% 
-  mutate(total_deaths = cumsum(deaths)) %>% 
-  mutate(active = positives - resolved - total_deaths) %>% 
+  mutate(active = total_cases - total_fatalities - total_recoveries,
+         date = lubridate::ymd(date)) %>%
+  filter(date > "2020-03-15") %>% 
   mutate(wave = ifelse(date < "2020-10-21", "Wave 1", "Wave 2")) %>% 
   arrange(date) %>% 
   group_by(wave) %>% 
-  mutate(date_num = as.numeric(date - min(date))) %>%
-  janitor::clean_names()
+  mutate(date_num = as.numeric(date - min(date))) %>% 
+mutate(active = ifelse(active < 0, 0, active)) 
 
 active_cases <- covid$active[nrow(covid)]
 ```
 
 There are **`r active_cases`** active cases in Nova Scotia as of **`r max(covid$date)`**.
 
-The data comes from [daily reports](https://novascotia.ca/coronavirus/#cases) from the Nova Scotia Government which I record in a [Github Repo](https://github.com/GShotwell/ns_covid).
+The data comes from [the Covid Tracker API](https://api.covid19tracker.ca/).
 
 ```{r plots, echo = FALSE, warning=FALSE, message=FALSE}
 theme_set(theme_minimal())
@@ -65,67 +70,17 @@ covid %>%
 
 case_df <- covid %>% 
   arrange(date) %>% 
-  mutate(roll_cases = roll_mean(new_cases, 7, fill = NA, align = "right")) %>%
-  mutate(eight_day = roll_sum(new_cases, 8, fill = NA, align = "right"))
+  mutate(roll_cases = roll_mean(change_cases, 7, fill = NA, align = "right")) %>%
+  mutate(eight_day = roll_sum(change_cases, 8, fill = NA, align = "right")) 
 
 ggplot(case_df, aes(x = date_num, y = roll_cases, group = wave, colour = wave)) +
   geom_line() +
-  geom_point(aes(y = new_cases), alpha = 0.2) +
+  geom_point(aes(y = change_cases), alpha = 0.2) +
   labs(y = "New cases (7 day average)",
        x = "Days since outbreak began",
        title = "Nova Scotia Covid Waves",
        subtitle = "Wave 2 began on October 21") +
   theme_light() 
-
-case_df %>% 
-  group_by(wave) %>% 
-  mutate(positives = positives - min(positives, na.rm = TRUE)) %>% 
-  ggplot(aes(y = roll_cases, x = positives, colour = wave)) +
-  geom_point() +
-  labs(y = "New cases \n(7 day average)",
-       x = "Total cases",
-       title = "Infection peak plot",
-       subtitle = "Wave 2 began on October 21")
-
-case_df %>% 
-  group_by(wave) %>% 
-  mutate(positives = positives - min(positives, na.rm = TRUE)) %>% 
-  ggplot(aes(y = roll_cases, x = positives, colour = wave)) +
-  geom_point() +
-  labs(y = "New cases \n(7 day average)",
-       x = "Total cases",
-       title = "Infection peak plot (Log scale)",
-       subtitle = "Wave 2 began on October 21") +
-  scale_x_log10() +
-  scale_y_log10()
-  
-
-
-
-```
-
-
-# Tests
-
-```{r echo=FALSE, message=FALSE, warning=FALSE}
-
-plot_df <- covid %>% 
-  ungroup() %>% 
-  arrange(date) %>% 
-  mutate(positive_rate = new_cases / daily_tests,
-         positive_rate_roll = roll_mean(positive_rate, 7, fill = NA, align = "right", na.rm = TRUE)) 
-
-plot_df %>% 
-  ggplot(aes(x = date_num, y = positive_rate_roll, group = wave, colour = wave)) +
-  geom_line() +
-  geom_point(aes(y = positive_rate), alpha = 0.3) +
-  labs(y = "Positive rate (7 day average)",
-       x = "Days since outbreak began",
-       title = "Nova Scotia Covid Waves",
-       subtitle = "Wave 2 began on October 21") +
-  scale_y_continuous(labels = scales::percent) +
-  theme_light()
-
 ```
 
 # Vaccines
@@ -191,22 +146,6 @@ plot_df %>%
        subtitle = "Nova Scotia",
        y = "Vaccinations per case",
        x = "Date")
-
-```
-
-
-# Hospitalizations
-
-```{r echo=FALSE, warning=FALSE}
-covid %>%
-  mutate(hospital = icu + non_icu) %>% 
-  ggplot(aes(x = date_num, y = hospital, group = wave, colour = wave)) +
-  geom_step() +
-  labs(y = "Hospitalized patients",
-       x = "Days since outbreak began",
-       title = "Nova Scotia Covid Waves",
-       subtitle = "Wave 2 began on October 21") +
-  theme_light()
 
 ```
 
