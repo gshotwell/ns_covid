@@ -14,22 +14,6 @@ library(lubridate)
 library(readr)
 library(httr)
 library(tidyr)
-
-raw_data  <-  readr::read_csv("https://novascotia.ca/coronavirus/data/ns-covid19-data.csv", skip = 1)
-
-process_covid <- function(raw_data) {
-  raw_data$Hospitalized <- NULL
-  covid <- raw_data[, 1:8]
-  names(covid) <- tolower(names(covid))
-  names(covid)[1:2] <- c("date", "new_cases")
-  names(covid)[names(covid) == "new_1"] <- "daily_tests"
-  covid$positives <- cumsum(covid$new_cases)
-  write.csv(covid, "ns_daily_covid.csv")
-  return(covid)
-}
-
-covid_old <- process_covid(raw_data)
-
 resp <- GET("https://api.covid19tracker.ca/reports/province/ns")
 covid <- tibble(raw = content(resp)$data) %>% 
   unnest_auto(raw)
@@ -42,7 +26,7 @@ covid <- covid %>%
   arrange(date) %>% 
   group_by(wave) %>% 
   mutate(date_num = as.numeric(date - min(date))) %>% 
-mutate(active = ifelse(active < 0, 0, active)) 
+  mutate(active = ifelse(active < 0, 0, active)) 
 
 active_cases <- covid$active[nrow(covid)]
 ```
@@ -64,7 +48,7 @@ covid %>%
   geom_step() +
   labs(y = "Active Cases",
        x = "Days since outbreak began",
-       title = "Nova Scotia Covid Waves",
+       title = "Nova Scotia's second wave has been smaller than the first",
        subtitle = "Wave 2 began on October 21") +
   theme_light()
 
@@ -78,7 +62,7 @@ ggplot(case_df, aes(x = date_num, y = roll_cases, group = wave, colour = wave)) 
   geom_point(aes(y = change_cases), alpha = 0.2) +
   labs(y = "New cases (7 day average)",
        x = "Days since outbreak began",
-       title = "Nova Scotia Covid Waves",
+       title = "Nova Scotia's second wave has been smaller than the first",
        subtitle = "Wave 2 began on October 21") +
   theme_light() 
 ```
@@ -98,7 +82,7 @@ vaccines <- vaccines %>%
   mutate(date = lubridate::ymd(date),
          vaccinated = roll_sum(change_vaccinations, 7, fill = NA, align = "right") / 7,
          vaccine_distributed = roll_sum(change_vaccines_distributed, 7, fill = NA, align = "right") / 7) %>% 
-   mutate(in_freezer = total_vaccines_distributed - total_vaccinations) %>% 
+  mutate(in_freezer = total_vaccines_distributed - total_vaccinations) %>% 
   arrange(date)
 
 plot_df <- case_df %>% 
@@ -120,8 +104,7 @@ plot_df %>%
   ggplot(aes(x = date, y = value, group = name, fill = name)) +
   geom_ribbon(aes(ymax = value, ymin = 0)) +
   labs(
-    title = "Unused vaccine doses",
-    subtitle = "Nova scotia",
+    title = "Nova Scotia's vaccine distribution has been slow",
     x = "Date",
     y = "Doses",
     fill = "Doses"
@@ -132,18 +115,22 @@ plot_df %>%
                      labels = scales::comma)
 
 vaccines %>% 
+    filter(date > "2020-12-21") %>% 
   ggplot(aes(x = date, y = in_freezer)) +
   geom_path() +
-  labs(title = "Vaccines sitting uselessly in freezer",
-       subtitle = "Nova Scotia",
+  scale_y_continuous(breaks = c(5000, 10000, 15000, vaccines$in_freezer[nrow(vaccines)]),
+                     labels = scales::comma) +
+  labs(title = "Nova Scotia has a lot of unused vaccine",
        y = "Unused vaccine doses",
        x = "Date")
 
 plot_df %>% 
+    filter(date > "2020-12-21") %>% 
   ggplot(aes(x = date, y = vaccine_ratio)) +
   geom_line() +
-  labs(title = "Vaccinations per active case",
-       subtitle = "Nova Scotia",
+  geom_path() +
+  scale_y_continuous(labels = scales::comma) +
+  labs(title = "There are many more vaccinations than cases",
        y = "Vaccinations per case",
        x = "Date")
 
