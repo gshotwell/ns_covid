@@ -54,17 +54,25 @@ covid %>%
 
 case_df <- covid %>% 
   arrange(date) %>% 
+  mutate(change_cases = ifelse(is.na(change_cases), 0, change_cases)) %>% 
   mutate(roll_cases = roll_mean(change_cases, 7, fill = NA, align = "right")) %>%
   mutate(eight_day = roll_sum(change_cases, 8, fill = NA, align = "right")) 
+
+case_df$roll_cases[nrow(case_df)]
+
+labs <- case_df %>% 
+  group_by(wave) %>% 
+  summarise(max = max(roll_cases, na.rm = TRUE))
 
 ggplot(case_df, aes(x = date_num, y = roll_cases, group = wave, colour = wave)) +
   geom_line() +
   geom_point(aes(y = change_cases), alpha = 0.2) +
+  scale_y_continuous(breaks = round(c(case_df$roll_cases[nrow(case_df)], labs$max), 1)) +
   labs(y = "New cases (7 day average)",
        x = "Days since outbreak began",
        title = "Nova Scotia's second wave has been smaller than the first",
        subtitle = "Wave 2 began on October 21") +
-  theme_light() 
+  theme_light() panel.grid.minor = element_blank()
 ```
 
 # Vaccines
@@ -91,7 +99,7 @@ plot_df <- case_df %>%
   left_join(vaccines, by = "date") %>% 
   mutate(vaccine_ratio = total_vaccinations / active,
          vaccine_distributed_ratio = vaccinated / vaccine_distributed) %>% 
-  filter(!is.na(vaccine_ratio))
+  filter(!is.na(vaccine_ratio)) 
 ```
 
 There are `r scales::comma(vaccines$in_freezer[nrow(vaccines)])` vaccines sitting in Nova Scotian freezers.
@@ -112,7 +120,8 @@ plot_df %>%
   scale_fill_viridis_d() +
   scale_y_continuous(breaks = c(max(plot_df$total_vaccinations), 
                                 max(plot_df$total_vaccines_distributed, na.rm = TRUE)),
-                     labels = scales::comma)
+                     labels = scales::comma) +
+  theme(panel.grid.minor = element_blank())
 
 vaccines %>% 
     filter(date > "2020-12-21") %>% 
@@ -122,7 +131,8 @@ vaccines %>%
                      labels = scales::comma) +
   labs(title = "Nova Scotia has a lot of unused vaccine",
        y = "Unused vaccine doses",
-       x = "Date")
+       x = "Date") +
+  theme(panel.grid.minor = element_blank())
 
 plot_df %>% 
     filter(date > "2020-12-21") %>% 
@@ -132,7 +142,8 @@ plot_df %>%
   scale_y_continuous(labels = scales::comma) +
   labs(title = "There are many more vaccinations than cases",
        y = "Vaccinations per case",
-       x = "Date")
+       x = "Date") +
+  theme(panel.grid.minor = element_blank())
 
 ```
 
