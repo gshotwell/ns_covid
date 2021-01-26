@@ -72,7 +72,7 @@ ggplot(case_df, aes(x = date_num, y = roll_cases, group = wave, colour = wave)) 
        x = "Days since outbreak began",
        title = "Nova Scotia's second wave has been smaller than the first",
        subtitle = "Wave 2 began on October 21") +
-  theme_light() panel.grid.minor = element_blank()
+  theme(panel.grid.minor = element_blank())
 ```
 
 # Vaccines
