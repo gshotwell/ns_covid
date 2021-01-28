@@ -138,7 +138,7 @@ vaccines %>%
   scale_y_continuous(breaks = c(vaccines$unused[nrow(vaccines)], vaccines$reserved[nrow(vaccines)]),
                      labels = scales::comma) +
   labs(title = "Nova Scotia has a lot of unused vaccine",
-       y = "Unused vaccine doses",
+       y = "Doses",
        x = "Date") +
   theme(panel.grid.minor = element_blank()) 
 ```
