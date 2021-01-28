@@ -18,6 +18,9 @@ resp <- GET("https://api.covid19tracker.ca/reports/province/ns")
 covid <- tibble(raw = content(resp)$data) %>% 
   unnest_auto(raw)
 
+resp <- GET("https://api.covid19tracker.ca/reports/province/pe")
+covid_pe <- tibble(raw = content(resp)$data) %>% 
+  unnest_auto(raw)
 covid <- covid %>% 
   mutate(active = total_cases - total_fatalities - total_recoveries,
          date = lubridate::ymd(date)) %>%
@@ -42,7 +45,6 @@ theme_set(theme_minimal())
 # Cases
 
 ```{r, echo = FALSE, warning=FALSE, message=FALSE}
-
 covid %>% 
   ggplot(aes(x = date_num, y = active, group = wave, colour = wave)) +
   geom_step() +
@@ -52,22 +54,20 @@ covid %>%
        subtitle = "Wave 2 began on October 21") +
   theme_light()
 
-case_df <- covid %>% 
+covid <- covid %>% 
   arrange(date) %>% 
   mutate(change_cases = ifelse(is.na(change_cases), 0, change_cases)) %>% 
   mutate(roll_cases = roll_mean(change_cases, 7, fill = NA, align = "right")) %>%
   mutate(eight_day = roll_sum(change_cases, 8, fill = NA, align = "right")) 
 
-case_df$roll_cases[nrow(case_df)]
-
-labs <- case_df %>% 
+labs <- covid %>% 
   group_by(wave) %>% 
   summarise(max = max(roll_cases, na.rm = TRUE))
 
-ggplot(case_df, aes(x = date_num, y = roll_cases, group = wave, colour = wave)) +
+ggplot(covid, aes(x = date_num, y = roll_cases, group = wave, colour = wave)) +
   geom_line() +
   geom_point(aes(y = change_cases), alpha = 0.2) +
-  scale_y_continuous(breaks = round(c(case_df$roll_cases[nrow(case_df)], labs$max), 1)) +
+  scale_y_continuous(breaks = round(c(covid$roll_cases[nrow(covid)], labs$max), 1)) +
   labs(y = "New cases (7 day average)",
        x = "Days since outbreak began",
        title = "Nova Scotia's second wave has been smaller than the first",
@@ -78,36 +78,38 @@ ggplot(case_df, aes(x = date_num, y = roll_cases, group = wave, colour = wave)) 
 # Vaccines
 
 ```{r message=FALSE, warning=FALSE, echo=FALSE}
-resp <- GET("https://api.covid19tracker.ca/reports/province/ns")
-resp <- tibble(raw = content(resp)$data)
-
-vaccines <- resp %>% 
-  unnest_auto(raw) %>% 
-  select(date, change_vaccinations, change_vaccines_distributed, total_vaccinations, total_vaccines_distributed)
+vaccines <- covid %>% 
+  arrange(desc(date)) %>% 
+  select(date, change_vaccinations, change_vaccines_distributed, 
+         total_vaccinations, total_vaccines_distributed, total_vaccinated, active) %>% 
+  mutate(full_doses = 2 * total_vaccinated,
+         reserved = total_vaccinations - full_doses,
+         unused = total_vaccines_distributed - total_vaccinations - reserved)
 
 vaccines <- vaccines %>% 
   filter(date > lubridate::ymd("2020-12-01")) %>% 
-  mutate(date = lubridate::ymd(date),
-         vaccinated = roll_sum(change_vaccinations, 7, fill = NA, align = "right") / 7,
-         vaccine_distributed = roll_sum(change_vaccines_distributed, 7, fill = NA, align = "right") / 7) %>% 
+  mutate(date = lubridate::ymd(date)) %>% 
   mutate(in_freezer = total_vaccines_distributed - total_vaccinations) %>% 
   arrange(date)
 
-plot_df <- case_df %>% 
-  ungroup() %>% 
-  select(date, active) %>% 
-  left_join(vaccines, by = "date") %>% 
-  mutate(vaccine_ratio = total_vaccinations / active,
-         vaccine_distributed_ratio = vaccinated / vaccine_distributed) %>% 
+plot_df <- vaccines %>% 
+  mutate(vaccine_ratio = total_vaccinated / active) %>% 
   filter(!is.na(vaccine_ratio)) 
 ```
 
-There are `r scales::comma(vaccines$in_freezer[nrow(vaccines)])` vaccines sitting in Nova Scotian freezers.
+
+Nova Scotia has had a very slow vaccine rollout, even accounting for the policy of reserving second doses, the amount of unused vaccine is high. 
+
 
 ```{r message=FALSE, warning=FALSE, echo=FALSE}
-plot_df %>% 
-  select(date,  `Available` = total_vaccines_distributed, `Distributed` = total_vaccinations) %>% 
+plot_df %>%
+  ungroup() %>% 
+  mutate(Reserved = reserved + total_vaccinations) %>% 
+  select(date,  `Available` = total_vaccines_distributed, 
+         Reserved,
+        `Distributed` = total_vaccinations) %>% 
   pivot_longer(-date) %>% 
+  mutate(name = factor(name, levels = c("Available", "Reserved", "Distributed"))) %>% 
   filter(date > "2020-12-21") %>% 
   ggplot(aes(x = date, y = value, group = name, fill = name)) +
   geom_ribbon(aes(ymax = value, ymin = 0)) +
@@ -117,31 +119,40 @@ plot_df %>%
     y = "Doses",
     fill = "Doses"
   ) +
-  scale_fill_viridis_d() +
+  scale_fill_viridis_d(option = "D") +
   scale_y_continuous(breaks = c(max(plot_df$total_vaccinations), 
                                 max(plot_df$total_vaccines_distributed, na.rm = TRUE)),
                      labels = scales::comma) +
   theme(panel.grid.minor = element_blank())
+```
 
+
+```{r message=FALSE, warning=FALSE, echo=FALSE}
 vaccines %>% 
-    filter(date > "2020-12-21") %>% 
-  ggplot(aes(x = date, y = in_freezer)) +
+  ungroup() %>% 
+  filter(date > "2021-01-12") %>% 
+  select(date, `Reserved for second dose` = reserved, `Just sitting in the freezer` = unused) %>% 
+  pivot_longer(-date, names_to = "Type", values_to = "value") %>% 
+  ggplot(aes(x = date, y = value, group = Type, colour = Type)) +
   geom_path() +
-  scale_y_continuous(breaks = c(5000, 10000, 15000, vaccines$in_freezer[nrow(vaccines)]),
+  scale_y_continuous(breaks = c(vaccines$unused[nrow(vaccines)], vaccines$reserved[nrow(vaccines)]),
                      labels = scales::comma) +
   labs(title = "Nova Scotia has a lot of unused vaccine",
        y = "Unused vaccine doses",
        x = "Date") +
-  theme(panel.grid.minor = element_blank())
+  theme(panel.grid.minor = element_blank()) 
+```
 
+
+```{r message=FALSE, warning=FALSE, echo=FALSE}
 plot_df %>% 
-    filter(date > "2020-12-21") %>% 
+  filter(date > "2020-12-21") %>% 
   ggplot(aes(x = date, y = vaccine_ratio)) +
   geom_line() +
   geom_path() +
   scale_y_continuous(labels = scales::comma) +
-  labs(title = "There are many more vaccinations than cases",
-       y = "Vaccinations per case",
+  labs(title = "Many more people are vaccinated than have Covid",
+       y = "Full vaccinations per case",
        x = "Date") +
   theme(panel.grid.minor = element_blank())
 
