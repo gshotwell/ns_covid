@@ -18,9 +18,6 @@ resp <- GET("https://api.covid19tracker.ca/reports/province/ns")
 covid <- tibble(raw = content(resp)$data) %>% 
   unnest_auto(raw)
 
-resp <- GET("https://api.covid19tracker.ca/reports/province/pe")
-covid_pe <- tibble(raw = content(resp)$data) %>% 
-  unnest_auto(raw)
 covid <- covid %>% 
   mutate(active = total_cases - total_fatalities - total_recoveries,
          date = lubridate::ymd(date)) %>%
