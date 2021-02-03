@@ -128,7 +128,7 @@ plot_df %>%
 vaccines %>% 
   ungroup() %>% 
   filter(date > "2021-01-12") %>% 
-  select(date, `Reserved for second dose` = reserved, `Just sitting in the freezer` = unused) %>% 
+  select(date, `Sitting in the freezer` = unused, `Reserved for second dose` = reserved) %>% 
   pivot_longer(-date, names_to = "Type", values_to = "value") %>% 
   ggplot(aes(x = date, y = value, group = Type, colour = Type)) +
   geom_path() +
