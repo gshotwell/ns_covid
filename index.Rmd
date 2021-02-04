@@ -31,7 +31,7 @@ covid <- covid %>%
 active_cases <- covid$active[nrow(covid)]
 ```
 
-There are **`r active_cases`** active cases in Nova Scotia as of **`r max(covid$date)`**.
+There are **`r active_cases`** active cases in Nova Scotia as of **`r max(covid$date[covid$change_tests > 0])`**.
 
 The data comes from [the Covid Tracker API](https://api.covid19tracker.ca/). 
 
