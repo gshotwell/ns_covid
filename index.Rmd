@@ -128,11 +128,11 @@ plot_df %>%
 vaccines %>% 
   ungroup() %>% 
   filter(date > "2021-01-12") %>% 
-  select(date, `Sitting in the freezer` = unused, `Reserved for second dose` = reserved) %>% 
+  select(date, `All stored doses` = in_freezer, `Sitting in the freezer` = unused, `Reserved for second dose` = reserved) %>% 
   pivot_longer(-date, names_to = "Type", values_to = "value") %>% 
   ggplot(aes(x = date, y = value, group = Type, colour = Type)) +
   geom_path() +
-  scale_y_continuous(breaks = c(vaccines$unused[nrow(vaccines)], vaccines$reserved[nrow(vaccines)]),
+  scale_y_continuous(breaks = c(vaccines$unused[nrow(vaccines)], vaccines$reserved[nrow(vaccines)], vaccines$in_freezer[nrow(vaccines)]),
                      labels = scales::comma) +
   labs(title = "Nova Scotia has a lot of unused vaccine",
        y = "Doses",
