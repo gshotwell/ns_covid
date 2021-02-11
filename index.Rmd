@@ -97,6 +97,34 @@ plot_df <- vaccines %>%
 
 Nova Scotia has had a very slow vaccine rollout, even accounting for the policy of reserving second doses, the amount of unused vaccine is high. 
 
+```{r message=FALSE, warning=FALSE, echo=FALSE}
+
+can <- resp <- GET("https://api.covid19tracker.ca/reports/")
+can <- tibble(raw = content(can)$data) %>% 
+  unnest_auto(raw)
+
+can <- can %>% 
+  mutate(date = lubridate::ymd(date)) %>% 
+  filter(date > "2021-01-01") %>% 
+  mutate(Region = "Canada") %>% 
+  mutate(vaccine_pace = roll_mean(change_vaccinations, 7, align = "right", fill = 0, na.rm = TRUE) / 37)
+
+
+vaccines %>% 
+  arrange(date) %>% 
+  mutate(Region = "Nova Scotia",
+         vaccine_pace = roll_mean(change_vaccinations, 7, align = "right", fill = 0, na.rm = TRUE) / 0.9) %>% 
+  bind_rows(can) %>% 
+    filter(date > "2021-01-07") %>% 
+  ggplot(aes(x = date, y = vaccine_pace, group = Region, color = Region)) +
+  geom_line() +
+  labs(
+    x = "Date",
+    y = "Doses",
+    title = "Nova Scotia Doses Administered",
+    subtitle = "Seven-day average, per million residents"
+  )
+```
 
 ```{r message=FALSE, warning=FALSE, echo=FALSE}
 plot_df %>%
@@ -160,3 +188,7 @@ plot_df2 %>%
     title = "Nova Scotia is not vaccinating on the weekends"
   )
 ```
+
+
+
+
