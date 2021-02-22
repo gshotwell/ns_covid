@@ -168,26 +168,6 @@ vaccines %>%
   theme(panel.grid.minor = element_blank()) 
 ```
 
-```{r message=FALSE, warning=FALSE, echo=FALSE}
-plot_df2 <- vaccines %>% 
-  filter(date > "2021-01-17") %>% 
-  mutate(week_day = lubridate::wday(date, label = TRUE)) %>% 
-  group_by(week_day) %>% 
-  summarize(mean_doses = mean(change_vaccinations, na.rm = TRUE)) %>% 
-  mutate(mean_doses = round(mean_doses, 0))
-
-plot_df2 %>% 
-  ggplot(aes(x = week_day, y = mean_doses)) +
-  geom_point() +
-  geom_segment(aes(x=week_day, xend=week_day, y=0, yend=mean_doses)) +
-  scale_y_continuous(breaks = plot_df2$mean_doses) +
-  theme(panel.grid.minor = element_blank()) +
-  labs(
-    y = "Mean Doses administered",
-    x = "Day of the Week",
-    title = "Nova Scotia is not vaccinating on the weekends"
-  )
-```
 
 
 
