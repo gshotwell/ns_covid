@@ -22,11 +22,7 @@ covid <- covid %>%
   mutate(active = total_cases - total_fatalities - total_recoveries,
          date = lubridate::ymd(date)) %>%
   filter(date > "2020-03-15") %>% 
-  mutate(wave = case_when(
-    date < "2020-10-21" ~ "Wave 1",
-    date > "2021-02-15" ~ "Wave 3", 
-    TRUE ~ "Wave 2")
-  ) %>% 
+  mutate(wave = ifelse(date < "2020-10-21", "Wave 1", "Wave 2")) %>% 
   arrange(date) %>% 
   group_by(wave) %>% 
   mutate(date_num = as.numeric(date - min(date))) %>% 
@@ -40,7 +36,7 @@ There are **`r active_cases`** active cases in Nova Scotia as of **`r max(covid$
 The data comes from [the Covid Tracker API](https://api.covid19tracker.ca/). 
 
 ```{r plots, echo = FALSE, warning=FALSE, message=FALSE}
-theme_set(theme_light())
+theme_set(theme_minimal())
 ```
 
 # Cases
@@ -51,7 +47,8 @@ covid %>%
   geom_step() +
   labs(y = "Active Cases",
        x = "Days since outbreak began",
-       title = "Nova Scotia Covid Waves") +
+       title = "Nova Scotia's second wave has been smaller than the first",
+       subtitle = "Wave 2 began on October 21") +
   theme_light()
 
 covid <- covid %>% 
@@ -72,7 +69,7 @@ ggplot(covid, aes(x = date_num, y = roll_cases, group = wave, colour = wave)) +
        x = "Days since outbreak began",
        title = "Nova Scotia's second wave has been smaller than the first",
        subtitle = "Wave 2 began on October 21") +
-  theme(panel.grid.minor = element_blank()) 
+  theme(panel.grid.minor = element_blank())
 ```
 
 # Vaccines
