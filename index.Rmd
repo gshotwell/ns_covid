@@ -159,7 +159,7 @@ comp_df  %>%
   geom_point() +
   scale_x_continuous(label = scales::comma) +
   labs(title = "Vaccine doses stored per capita",
-       subtitle = paste0("As of ", plot_df$date[1]),
+       subtitle = paste0("As of ", comp_df$date[1]),
          y = "Province",
        x = "Doses stored per million residents") + 
   theme_minimal()
