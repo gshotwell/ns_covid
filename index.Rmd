@@ -98,7 +98,6 @@ plot_df <- vaccines %>%
 Nova Scotia has had a very slow vaccine rollout, even accounting for the policy of reserving second doses, the amount of unused vaccine is high. 
 
 ```{r message=FALSE, warning=FALSE, echo=FALSE}
-
 can <- resp <- GET("https://api.covid19tracker.ca/reports/")
 can <- tibble(raw = content(can)$data) %>% 
   unnest_auto(raw)
@@ -124,6 +123,47 @@ vaccines %>%
     title = "Nova Scotia Doses Administered",
     subtitle = "Seven-day average, per million residents"
   )
+```
+
+```{r message=FALSE, warning=FALSE, echo=FALSE}
+provs <- GET("https://api.covid19tracker.ca/provinces")
+provs <- tibble(raw = content(provs)) %>% 
+  unnest_auto("raw")
+
+provs <- provs %>% 
+  mutate(code = tolower(code)) %>% 
+  filter(population > 50000)
+
+get_province <- function(prov = "ns") {
+  resp <- GET(paste0("https://api.covid19tracker.ca/reports/province/", prov), query = list(after = Sys.Date() - 7))
+  covid <- tibble(raw = content(resp)$data) %>% 
+    unnest_auto(raw)
+  covid$prov <- prov
+  return(covid)
+}
+
+dat <-  purrr::map_df(tolower(provs$code), get_province)
+
+comp_df <- dat %>% 
+  left_join(provs, by = c("prov" = "code")) %>% 
+  mutate(date = lubridate::ymd(date)) %>% 
+  filter(date == max(date)) %>% 
+  mutate(population = population / 1e6) %>% 
+  mutate(doses_stored_per_million = (total_vaccines_distributed - total_vaccinations) / population)
+
+median_val <-  median(comp_df$doses_stored_per_million)
+
+comp_df  %>% 
+  ggplot(aes(y = forcats::fct_reorder(name, doses_stored_per_million), 
+             x = doses_stored_per_million)) +
+  geom_point() +
+  scale_x_continuous(label = scales::comma) +
+  labs(title = "Vaccine doses stored per capita",
+       subtitle = paste0("As of ", plot_df$date[1]),
+         y = "Province",
+       x = "Doses stored per million residents") + 
+  theme_minimal()
+
 ```
 
 ```{r message=FALSE, warning=FALSE, echo=FALSE}
