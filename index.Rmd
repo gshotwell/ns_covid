@@ -171,7 +171,6 @@ plot_df %>%
   ungroup() %>% 
   mutate(Reserved = reserved + total_vaccinations) %>% 
   select(date,  `Available` = total_vaccines_distributed, 
-         Reserved,
         `Distributed` = total_vaccinations) %>% 
   pivot_longer(-date) %>% 
   mutate(name = factor(name, levels = c("Available", "Reserved", "Distributed"))) %>% 
@@ -194,16 +193,13 @@ plot_df %>%
 
 ```{r message=FALSE, warning=FALSE, echo=FALSE}
 vaccines %>% 
-  ungroup() %>% 
-  filter(date > "2021-01-12") %>% 
-  select(date, `All stored doses` = in_freezer, `Sitting in the freezer` = unused, `Reserved for second dose` = reserved) %>% 
-  pivot_longer(-date, names_to = "Type", values_to = "value") %>% 
-  ggplot(aes(x = date, y = value, group = Type, colour = Type)) +
+  filter(date > "2020-12-15") %>% 
+  ggplot(aes(x = date, y = in_freezer)) +
   geom_path() +
-  scale_y_continuous(breaks = c(vaccines$unused[nrow(vaccines)], vaccines$reserved[nrow(vaccines)], vaccines$in_freezer[nrow(vaccines)]),
+  scale_y_continuous(
                      labels = scales::comma) +
   labs(title = "Nova Scotia has a lot of unused vaccine",
-       y = "Doses",
+       y = "Store doses",
        x = "Date") +
   theme(panel.grid.minor = element_blank()) 
 ```
