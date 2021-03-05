@@ -171,9 +171,9 @@ plot_df %>%
   ungroup() %>% 
   mutate(Reserved = reserved + total_vaccinations) %>% 
   select(date,  `Available` = total_vaccines_distributed, 
-        `Distributed` = total_vaccinations) %>% 
+        `Administered` = total_vaccinations) %>% 
   pivot_longer(-date) %>% 
-  mutate(name = factor(name, levels = c("Available", "Reserved", "Distributed"))) %>% 
+  mutate(name = factor(name, levels = c("Available", "Administered"))) %>% 
   filter(date > "2020-12-21") %>% 
   ggplot(aes(x = date, y = value, group = name, fill = name)) +
   geom_ribbon(aes(ymax = value, ymin = 0)) +
