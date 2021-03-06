@@ -199,7 +199,7 @@ vaccines %>%
   scale_y_continuous(
                      labels = scales::comma) +
   labs(title = "Nova Scotia has a lot of unused vaccine",
-       y = "Store doses",
+       y = "Stored doses",
        x = "Date") +
   theme(panel.grid.minor = element_blank()) 
 ```
