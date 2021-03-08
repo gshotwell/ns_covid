@@ -109,12 +109,20 @@ can <- can %>%
   mutate(vaccine_pace = roll_mean(change_vaccinations, 7, align = "right", fill = 0, na.rm = TRUE) / 37)
 
 
-vaccines %>% 
+vax_comp <- vaccines %>% 
   arrange(date) %>% 
   mutate(Region = "Nova Scotia",
          vaccine_pace = roll_mean(change_vaccinations, 7, align = "right", fill = 0, na.rm = TRUE) / 0.9) %>% 
   bind_rows(can) %>% 
-    filter(date > "2021-01-07") %>% 
+    filter(date > "2021-01-07") 
+
+breaks <- vax_comp %>% 
+  group_by(Region) %>% 
+  arrange(desc(date)) %>% 
+  slice(1) %>% 
+  pull(vaccine_pace)
+
+vax_comp %>% 
   ggplot(aes(x = date, y = vaccine_pace, group = Region, color = Region)) +
   geom_line() +
   labs(
@@ -122,7 +130,8 @@ vaccines %>%
     y = "Doses",
     title = "Nova Scotia Doses Administered",
     subtitle = "Seven-day average, per million residents"
-  )
+  ) +
+  scale_y_continuous(breaks = breaks, labels = scales::comma)
 ```
 
 ```{r message=FALSE, warning=FALSE, echo=FALSE}
