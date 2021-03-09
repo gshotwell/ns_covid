@@ -18,6 +18,17 @@ resp <- GET("https://api.covid19tracker.ca/reports/province/ns")
 covid <- tibble(raw = content(resp)$data) %>% 
   unnest_auto(raw)
 
+today <- covid %>% 
+  filter(date == Sys.Date())
+
+is_weekend <- wday(today(), label = TRUE) %in% c("Sun", "Sat")
+
+if (nrow(today) == 0 || 
+    today$change_tests == 0 ||
+    (today$change_vaccinations == 0 && !is_weekend)) {
+      stop("Data not yet reported")
+    }
+
 covid <- covid %>% 
   mutate(active = total_cases - total_fatalities - total_recoveries,
          date = lubridate::ymd(date)) %>%
