@@ -50,7 +50,7 @@ The data comes from [the Covid Tracker API](https://api.covid19tracker.ca/).
 theme_set(theme_minimal())
 ```
 
-# Cases
+# Cases  s
 
 ```{r, echo = FALSE, warning=FALSE, message=FALSE}
 covid %>% 
