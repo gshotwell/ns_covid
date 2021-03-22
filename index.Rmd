@@ -23,7 +23,7 @@ today <- covid %>%
 
 is_weekend <- wday(today(), label = TRUE) %in% c("Sun", "Sat")
 
-if (nrow(today) == 0 || 
+if (nrow(today) == 0 ||
     today$change_tests == 0 ||
     (today$change_vaccinations == 0 && !is_weekend)) {
       stop("Data not yet reported")
