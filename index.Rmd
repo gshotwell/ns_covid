@@ -152,7 +152,8 @@ provs <- tibble(raw = content(provs)) %>%
 
 provs <- provs %>% 
   mutate(code = tolower(code)) %>% 
-  filter(population > 50000)
+  filter(population > 50000) %>% 
+  filter(code != "nl")
 
 get_province <- function(prov = "ns") {
   resp <- GET(paste0("https://api.covid19tracker.ca/reports/province/", prov), query = list(after = Sys.Date() - 7))
