@@ -127,7 +127,7 @@ can <- can %>%
 vax_comp <- vaccines %>% 
   arrange(date) %>% 
   mutate(Region = "Nova Scotia",
-         vaccine_pace = roll_mean(change_vaccinations, 7, align = "right", fill = 0, na.rm = TRUE) / 0.9) %>% 
+         vaccine_pace = roll_mean(change_vaccinations, 7, align = "right", fill = 0, na.rm = TRUE) / 0.975) %>% 
   bind_rows(can) %>% 
     filter(date > "2021-01-07") 
 
