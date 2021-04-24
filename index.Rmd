@@ -33,7 +33,9 @@ covid <- covid %>%
   mutate(active = total_cases - total_fatalities - total_recoveries,
          date = lubridate::ymd(date)) %>%
   filter(date > "2020-03-15") %>% 
-  mutate(wave = ifelse(date < "2020-10-21", "Wave 1", "Wave 2")) %>% 
+  mutate(wave = dplyr::case_when(date < "2020-10-21" ~"Wave 1", 
+                                 date > "2021-04-01" ~ "Wave 3", 
+                                 TRUE ~ "Wave 2")) %>% 
   arrange(date) %>% 
   group_by(wave) %>% 
   mutate(date_num = as.numeric(date - min(date))) %>% 
