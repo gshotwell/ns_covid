@@ -21,21 +21,21 @@ covid <- tibble(raw = content(resp)$data) %>%
 today <- covid %>% 
   filter(date == Sys.Date())
 
-is_weekend <- wday(today(), label = TRUE) %in% c("Sun", "Sat")
-
-if (nrow(today) == 0 ||
-    today$change_tests == 0 ||
-    (today$change_vaccinations == 0 && !is_weekend)) {
-      stop("Data not yet reported")
-    }
+# is_weekend <- wday(today(), label = TRUE) %in% c("Sun", "Sat")
+# 
+# if (nrow(today) == 0 ||
+#     today$change_tests == 0 ||
+#     (today$change_vaccinations == 0 && !is_weekend)) {
+#       stop("Data not yet reported")
+#     }
 
 covid <- covid %>% 
   mutate(active = total_cases - total_fatalities - total_recoveries,
          date = lubridate::ymd(date)) %>%
   filter(date > "2020-03-15") %>% 
-  mutate(wave = dplyr::case_when(date < "2020-10-21" ~"Wave 1", 
-                                 date > "2021-04-01" ~ "Wave 3", 
-                                 TRUE ~ "Wave 2")) %>% 
+  mutate(wave = dplyr::case_when(date < "2020-10-21" ~"Spring 2020", 
+                                 date > "2021-04-01" ~ "Spring 2021", 
+                                 TRUE ~ "Winter 2020")) %>% 
   arrange(date) %>% 
   group_by(wave) %>% 
   mutate(date_num = as.numeric(date - min(date))) %>% 
@@ -60,7 +60,7 @@ covid %>%
   geom_step() +
   labs(y = "Active Cases",
        x = "Days since outbreak began",
-       title = "Nova Scotia's second wave has been smaller than the first",
+       title = "Nova Scotia's third wave is similar to the first",
        subtitle = "Wave 2 began on October 21") +
   theme_light()
 
@@ -80,10 +80,35 @@ ggplot(covid, aes(x = date_num, y = roll_cases, group = wave, colour = wave)) +
   scale_y_continuous(breaks = round(c(covid$roll_cases[nrow(covid)], labs$max), 1)) +
   labs(y = "New cases (7 day average)",
        x = "Days since outbreak began",
-       title = "Nova Scotia's second wave has been smaller than the first",
-       subtitle = "Wave 2 began on October 21") +
+       title = "Nova Scotia's thurd waves is similar to the first") +
   theme(panel.grid.minor = element_blank())
 ```
+
+```{r message=FALSE, warning=FALSE, echo=FALSE}
+
+# covid %>% 
+#  select(wave, date_num, change_tests, active) %>% 
+#   mutate(roll_tests = roll_sum(change_tests, 7, fill = NA, align = "right")) %>% 
+#   mutate(test_per_active = roll_tests / active) %>% 
+#   filter(active > 10) %>% 
+#   filter(date_num < 50) %>% 
+#   ggplot(aes(x = date_num, y = test_per_active, 
+#              group = wave, colour  = wave)) +
+#   geom_line()
+
+covid %>%
+ select(wave, date_num, change_tests, active, roll_cases) %>%
+  mutate(roll_tests = roll_mean(change_tests, 7, fill = NA, align = "right")) %>%
+  mutate(positivity = roll_cases / roll_tests) %>%
+  ggplot(aes(x = date_num, y = positivity,
+             group = wave, colour  = wave)) +
+  geom_line() +
+  scale_y_continuous(label = scales::percent) +
+    labs(y = "Test positivitiy (7 day average)",
+       x = "Days since outbreak began",
+       title = "The third wave's positivity is pretty low") 
+```
+
 
 # Vaccines
 
