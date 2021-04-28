@@ -22,12 +22,19 @@ today <- covid %>%
   filter(date == Sys.Date())
 
 is_weekend <- wday(today(), label = TRUE) %in% c("Sun", "Sat")
+manual <- 73
 
 if (nrow(today) == 0 ||
     today$change_tests == 0 ||
     (today$change_vaccinations == 0 && !is_weekend)) {
-      stop("Data not yet reported")
-    }
+  if (is.na(manual)) {
+    stop("Data not yet reported")
+  } else {
+    lgl <- covid$date == as.character(Sys.Date())
+    covid$change_tests[lgl] <- 10000
+    covid$change_cases[lgl] <- manual
+  } 
+}
 
 covid <- covid %>% 
   mutate(active = total_cases - total_fatalities - total_recoveries,
@@ -108,7 +115,7 @@ covid %>%
   geom_line() +
   geom_point(aes(y = positivity), alpha = 0.2) +
   scale_y_continuous(label = scales::percent) +
-    labs(y = "Test positivitiy (7 day average)",
+  labs(y = "Test positivitiy (7 day average)",
        x = "Days since outbreak began",
        title = "The third wave's positivity is pretty low") 
 ```
@@ -160,7 +167,7 @@ vax_comp <- vaccines %>%
   mutate(Region = "Nova Scotia",
          vaccine_pace = roll_mean(change_vaccinations, 7, align = "right", fill = 0, na.rm = TRUE) / 0.975) %>% 
   bind_rows(can) %>% 
-    filter(date > "2021-01-07") 
+  filter(date > "2021-01-07") 
 
 breaks <- vax_comp %>% 
   group_by(Region) %>% 
@@ -221,7 +228,7 @@ comp_df  %>%
   scale_x_continuous(label = scales::comma) +
   labs(title = "Vaccine doses stored per capita",
        subtitle = "Seven day average",
-         y = "Province",
+       y = "Province",
        x = "Doses stored per million residents") + 
   theme_minimal()
 
@@ -232,7 +239,7 @@ plot_df %>%
   ungroup() %>% 
   mutate(Reserved = reserved + total_vaccinations) %>% 
   select(date,  `Available` = total_vaccines_distributed, 
-        `Administered` = total_vaccinations) %>% 
+         `Administered` = total_vaccinations) %>% 
   pivot_longer(-date) %>% 
   mutate(name = factor(name, levels = c("Available", "Administered"))) %>% 
   filter(date > "2020-12-21") %>% 
@@ -258,7 +265,7 @@ vaccines %>%
   ggplot(aes(x = date, y = in_freezer)) +
   geom_path() +
   scale_y_continuous(
-                     labels = scales::comma) +
+    labels = scales::comma) +
   labs(title = "Nova Scotia has a lot of unused vaccine",
        y = "Stored doses",
        x = "Date") +
