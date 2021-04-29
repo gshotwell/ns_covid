@@ -22,7 +22,7 @@ today <- covid %>%
   filter(date == Sys.Date())
 
 is_weekend <- wday(today(), label = TRUE) %in% c("Sun", "Sat")
-manual <- 73
+manual <- 70
 
 if (nrow(today) == 0 ||
     today$change_tests == 0 ||
@@ -30,6 +30,9 @@ if (nrow(today) == 0 ||
   if (is.na(manual)) {
     stop("Data not yet reported")
   } else {
+    if (!(as.character(Sys.Date()) %in% covid$date)) {
+      covid <- bind_rows(covid, tibble(date = as.character(Sys.Date())))
+    }
     lgl <- covid$date == as.character(Sys.Date())
     covid$change_tests[lgl] <- 10000
     covid$change_cases[lgl] <- manual
