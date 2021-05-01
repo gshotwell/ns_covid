@@ -22,7 +22,7 @@ today <- covid %>%
   filter(date == Sys.Date())
 
 is_weekend <- wday(today(), label = TRUE) %in% c("Sun", "Sat")
-manual <- 70
+manual <- NA
 
 if (nrow(today) == 0 ||
     today$change_tests == 0 ||
@@ -34,7 +34,7 @@ if (nrow(today) == 0 ||
       covid <- bind_rows(covid, tibble(date = as.character(Sys.Date())))
     }
     lgl <- covid$date == as.character(Sys.Date())
-    covid$change_tests[lgl] <- 10000
+    covid$change_tests[lgl] <- 16578
     covid$change_cases[lgl] <- manual
   } 
 }
