@@ -21,6 +21,12 @@ covid <- tibble(raw = content(resp)$data) %>%
 today <- covid %>% 
   filter(date == Sys.Date())
 
+missed_dates <- c("2021-04-28", "2021-04-29", "2021-04-30")
+makeup_date <- c("2021-05-02")
+
+test_interp <- covid$change_tests[covid$date == makeup_date] / 4
+covid$change_tests[covid$date %in% c(missed_dates, makeup_date)] <- test_interp
+
 is_weekend <- wday(today(), label = TRUE) %in% c("Sun", "Sat")
 manual <- NA
 
