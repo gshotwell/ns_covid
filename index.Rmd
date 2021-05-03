@@ -71,7 +71,7 @@ covid %>%
   geom_step() +
   labs(y = "Active Cases",
        x = "Days since outbreak began",
-       title = "Nova Scotia's third wave is similar to the first"
+       title = "Nova Scotia's third wave is worse than the first"
   ) +
   theme_light()
 
@@ -91,7 +91,7 @@ ggplot(covid, aes(x = date_num, y = roll_cases, group = wave, colour = wave)) +
   scale_y_continuous(breaks = round(c(covid$roll_cases[nrow(covid)], labs$max), 1)) +
   labs(y = "New cases (7 day average)",
        x = "Days since outbreak began",
-       title = "Nova Scotia's third waves is similar to the first") +
+       title = "Nova Scotia's third wave is worse than the first") +
   theme(panel.grid.minor = element_blank())
 ```
 
