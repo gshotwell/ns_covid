@@ -5,7 +5,6 @@ output: html_document
 params:
   data: covid
 ---
-
 ```{r setup, include=FALSE}
 library(dplyr)
 library(ggplot2)
@@ -29,7 +28,6 @@ covid$change_tests[covid$date %in% c(missed_dates, makeup_date)] <- test_interp
 
 is_weekend <- wday(today(), label = TRUE) %in% c("Sun", "Sat")
 manual <- NA
-
 if (nrow(today) == 0 ||
     today$change_tests == 0 ||
     (today$change_vaccinations == 0 && !is_weekend)) {
@@ -40,9 +38,9 @@ if (nrow(today) == 0 ||
       covid <- bind_rows(covid, tibble(date = as.character(Sys.Date())))
     }
     lgl <- covid$date == as.character(Sys.Date())
-    covid$change_tests[lgl] <- 16578
+    covid$change_tests[lgl] <- 10000
     covid$change_cases[lgl] <- manual
-  } 
+  }
 }
 
 covid <- covid %>% 
@@ -102,17 +100,6 @@ ggplot(covid, aes(x = date_num, y = roll_cases, group = wave, colour = wave)) +
 ```
 
 ```{r message=FALSE, warning=FALSE, echo=FALSE}
-
-# covid %>% 
-#  select(wave, date_num, change_tests, active) %>% 
-#   mutate(roll_tests = roll_sum(change_tests, 7, fill = NA, align = "right")) %>% 
-#   mutate(test_per_active = roll_tests / active) %>% 
-#   filter(active > 10) %>% 
-#   filter(date_num < 50) %>% 
-#   ggplot(aes(x = date_num, y = test_per_active, 
-#              group = wave, colour  = wave)) +
-#   geom_line()
-
 covid %>%
   filter(change_tests > 0) %>% 
   mutate(roll_tests = roll_mean(change_tests, 7, fill = NA, align = "right")) %>%
@@ -128,6 +115,32 @@ covid %>%
        x = "Days since outbreak began",
        title = "The third wave's positivity is pretty low") 
 ```
+
+# Hospitalizations 
+
+```{r message=FALSE, warning=FALSE, echo=FALSE}
+
+covid %>% 
+  ggplot(aes(x = date_num, y = total_hospitalizations, colour = wave)) +
+  theme_minimal() +
+  geom_line() +
+    labs(y = "Number of hospitalized patients",
+       x = "Days since outbreak began",
+       title = "More Nova Scotians are being hospitalized") 
+
+covid %>% 
+  mutate(lagged_hospital = total_hospitalizations / lag(active, 7)) %>% 
+  filter(lag(active, 7) > 20) %>% 
+  ggplot(aes(x = date_num, y = lagged_hospital, colour = wave)) +
+  theme_minimal() +
+  scale_y_continuous(labels = scales::percent) +
+  geom_line() +
+    labs(y = "Seven day lagged hospitalization rate",
+       x = "Days since outbreak began",
+       title = "More Nova Scotians are being hospitalized") 
+
+```
+
 
 
 # Vaccines
@@ -194,6 +207,31 @@ vax_comp %>%
     subtitle = "Seven-day average, per million residents"
   ) +
   scale_y_continuous(breaks = breaks, labels = scales::comma)
+
+
+get_immune <-  function(check_date, df = vaccines) {
+  df %>% 
+    filter(date < check_date) %>% 
+    select(change_vaccinations, date) %>% 
+    arrange(desc(date)) %>% 
+    mutate(immune_day = ifelse(row_number() > 13, 14, row_number()),
+           immune_pct = 0.87 * immune_day / 14,
+           immune_pop = change_vaccinations * immune_pct) %>% 
+    pull(immune_pop) %>% 
+    sum()
+}
+
+vaccines$immune <- purrr::map_dbl(vaccines$date, get_immune) / 1e6
+
+ggplot(vaccines, aes(x = date, y = immune)) + 
+  geom_line() +
+  scale_y_continuous(labels = scales::percent) +
+  labs (title = "Nova Scotia Aggregate immunity",
+        subtitle = "Based on an expected 87% reduction in transmission 14 days after first dose",
+        y = "Aggregate immunity",
+        x = "Date")
+
+
 ```
 
 ```{r message=FALSE, warning=FALSE, echo=FALSE}
