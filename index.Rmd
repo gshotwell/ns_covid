@@ -227,7 +227,7 @@ ggplot(vaccines, aes(x = date, y = immune)) +
   geom_line() +
   scale_y_continuous(labels = scales::percent) +
   labs (title = "Nova Scotia Aggregate immunity",
-        subtitle = "Based on an expected 87% reduction in transmission 14 days after first dose",
+        subtitle = "Based on an expected 86% reduction in transmission 14 days after first dose",
         y = "Aggregate immunity",
         x = "Date")
 
