@@ -6,3 +6,5 @@
 ns_covid.Rproj
 
 .DS_Store
+
+*.Rds

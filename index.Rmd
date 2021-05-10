@@ -38,7 +38,7 @@ if (nrow(today) == 0 ||
       covid <- bind_rows(covid, tibble(date = as.character(Sys.Date())))
     }
     lgl <- covid$date == as.character(Sys.Date())
-    covid$change_tests[lgl] <- 10000
+    covid$change_tests[lgl] <- 7700
     covid$change_cases[lgl] <- manual
   }
 }
@@ -170,7 +170,7 @@ recent_vax <- vaccines %>%
 ```
 
 
-Nova Scotia administered **`r scales::comma(recent_vax)`** yesterday.
+Nova Scotia administered **`r scales::comma(recent_vax)`** vaccine doses yesterday.
 
 ```{r message=FALSE, warning=FALSE, echo=FALSE}
 can <- resp <- GET("https://api.covid19tracker.ca/reports/")
