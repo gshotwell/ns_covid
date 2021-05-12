@@ -38,7 +38,8 @@ if (nrow(today) == 0 ||
       covid <- bind_rows(covid, tibble(date = as.character(Sys.Date())))
     }
     lgl <- covid$date == as.character(Sys.Date())
-    covid$change_tests[lgl] <- 7700
+    covid$change_tests[lgl] <- 7289
+    covid$change_vaccinations <- 
     covid$change_cases[lgl] <- manual
   }
 }
