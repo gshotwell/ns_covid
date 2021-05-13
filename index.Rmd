@@ -39,7 +39,7 @@ if (nrow(today) == 0 ||
     }
     lgl <- covid$date == as.character(Sys.Date())
     covid$change_tests[lgl] <- 7289
-    covid$change_vaccinations <- 
+    covid$change_vaccinations <- 15000 
     covid$change_cases[lgl] <- manual
   }
 }
