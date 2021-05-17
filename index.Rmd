@@ -27,22 +27,22 @@ test_interp <- covid$change_tests[covid$date == makeup_date] / 4
 covid$change_tests[covid$date %in% c(missed_dates, makeup_date)] <- test_interp
 
 is_weekend <- wday(today(), label = TRUE) %in% c("Sun", "Sat")
-manual <- NA
-if (nrow(today) == 0 ||
-    today$change_tests == 0 ||
-    (today$change_vaccinations == 0 && !is_weekend)) {
-  if (is.na(manual)) {
-    stop("Data not yet reported")
-  } else {
-    if (!(as.character(Sys.Date()) %in% covid$date)) {
-      covid <- bind_rows(covid, tibble(date = as.character(Sys.Date())))
-    }
-    lgl <- covid$date == as.character(Sys.Date())
-    covid$change_tests[lgl] <- 7289
-    covid$change_vaccinations <- 15000 
-    covid$change_cases[lgl] <- manual
-  }
-}
+# manual <- NA
+# if (nrow(today) == 0 ||
+#     today$change_tests == 0 ||
+#     (today$change_vaccinations == 0 && !is_weekend)) {
+#   if (is.na(manual)) {
+#     stop("Data not yet reported")
+#   } else {
+#     if (!(as.character(Sys.Date()) %in% covid$date)) {
+#       covid <- bind_rows(covid, tibble(date = as.character(Sys.Date())))
+#     }
+#     lgl <- covid$date == as.character(Sys.Date())
+#     covid$change_tests[lgl] <- 10272
+#     covid$change_vaccinations <- 0 
+#     covid$change_cases[lgl] <- manual
+#   }
+# }
 
 covid <- covid %>% 
   mutate(active = total_cases - total_fatalities - total_recoveries,
@@ -208,31 +208,6 @@ vax_comp %>%
     subtitle = "Seven-day average, per million residents"
   ) +
   scale_y_continuous(breaks = breaks, labels = scales::comma)
-
-
-get_immune <-  function(check_date, df = vaccines) {
-  df %>% 
-    filter(date < check_date) %>% 
-    select(change_vaccinations, date) %>% 
-    arrange(desc(date)) %>% 
-    mutate(immune_day = ifelse(row_number() > 13, 14, row_number()),
-           immune_pct = 0.87 * immune_day / 14,
-           immune_pop = change_vaccinations * immune_pct) %>% 
-    pull(immune_pop) %>% 
-    sum()
-}
-
-vaccines$immune <- purrr::map_dbl(vaccines$date, get_immune) / 1e6
-
-ggplot(vaccines, aes(x = date, y = immune)) + 
-  geom_line() +
-  scale_y_continuous(labels = scales::percent) +
-  labs (title = "Nova Scotia Aggregate immunity",
-        subtitle = "Based on an expected 86% reduction in transmission 14 days after first dose",
-        y = "Aggregate immunity",
-        x = "Date")
-
-
 ```
 
 ```{r message=FALSE, warning=FALSE, echo=FALSE}
