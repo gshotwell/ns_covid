@@ -208,6 +208,34 @@ vax_comp %>%
     subtitle = "Seven-day average, per million residents"
   ) +
   scale_y_continuous(breaks = breaks, labels = scales::comma)
+
+vaccines$date <- lubridate::ymd(vaccines$date)
+
+
+get_immune <-  function(check_date, df = vaccines) {
+  df %>% 
+    ungroup() %>% 
+    filter(date < check_date) %>% 
+    select(change_vaccinations, date) %>% 
+    arrange(desc(date)) %>% 
+    mutate(immune_day = ifelse(row_number() > 13, 14, row_number()),
+           immune_pct = 0.8 * immune_day / 14,
+           immune_pop = change_vaccinations * immune_pct) %>% 
+    pull(immune_pop) %>% 
+    sum()
+}
+
+vaccines$immune <- purrr::map_dbl(vaccines$date, get_immune) / 1e6
+
+ggplot(vaccines, aes(x = date, y = immune)) + 
+  geom_line() +
+  scale_y_continuous(labels = scales::percent, limits = c(0, 0.8)) +
+  labs (title = "Nova Scotia Aggregate immunity",
+        subtitle = "Based on an expected 80% reduction in infection 14 days after first dose",
+        y = "Aggregate immunity",
+        x = "Date")
+
+
 ```
 
 ```{r message=FALSE, warning=FALSE, echo=FALSE}
