@@ -8,9 +8,9 @@ generation_time <- get_generation_time(disease = "SARS-CoV-2", source = "ganyani
 incubation_period <- get_incubation_period(disease = "SARS-CoV-2", source = "lauer")
 reported_cases <- example_confirmed[1:90]
 
-ns_cases <- covid %%
-  filter(date > "2021-04-01") %%
-  ungroup() %%
+ns_cases <- covid %>%
+  dplyr::filter(date > lubridate::ymd("2021-04-01")) %>%
+  ungroup() %>%
   select(date, confirm = change_cases)
 
 
