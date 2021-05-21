@@ -20,4 +20,6 @@ estimates <- epinow(reported_cases = ns_cases,
                     rt = rt_opts(prior = list(mean = 2, sd = 0.2)),
                     stan = stan_opts(cores = 8), )
 
-estimates$plots$infections
+estimates$plots$infections +
+  scale_x_date(limits = c(lubridate::ymd("2021-04-01"), Sys.Date())) +
+  scale_y_continuous(limits = c(0, 300))
