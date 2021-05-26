@@ -23,3 +23,18 @@ estimates <- epinow(reported_cases = ns_cases,
 estimates$plots$infections +
   scale_x_date(limits = c(lubridate::ymd("2021-04-01"), Sys.Date())) +
   scale_y_continuous(limits = c(0, 300))
+
+estimates$plots$reports +
+  scale_x_date(limits = c(lubridate::ymd("2021-04-01"), Sys.Date())) +
+  scale_y_continuous(limits = c(0, 300))
+
+estimates$plots$R +
+  scale_x_date(limits = c(lubridate::ymd("2021-04-01"), Sys.Date()))
+
+
+estimates$plots$summary
+
+
+
+
+
