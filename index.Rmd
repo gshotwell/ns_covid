@@ -116,33 +116,6 @@ covid %>%
        title = "The third wave's positivity is pretty low") 
 ```
 
-# Hospitalizations 
-
-```{r message=FALSE, warning=FALSE, echo=FALSE}
-
-covid %>% 
-  ggplot(aes(x = date_num, y = total_hospitalizations, colour = wave)) +
-  theme_minimal() +
-  geom_line() +
-    labs(y = "Number of hospitalized patients",
-       x = "Days since outbreak began",
-       title = "More Nova Scotians are being hospitalized") 
-
-covid %>% 
-  mutate(lagged_hospital = total_hospitalizations / lag(active, 7)) %>% 
-  filter(lag(active, 7) > 20) %>% 
-  ggplot(aes(x = date_num, y = lagged_hospital, colour = wave)) +
-  theme_minimal() +
-  scale_y_continuous(labels = scales::percent) +
-  geom_line() +
-    labs(y = "Seven day lagged hospitalization rate",
-       x = "Days since outbreak began",
-       title = "More Nova Scotians are being hospitalized") 
-
-```
-
-
-
 # Vaccines
 
 ```{r message=FALSE, warning=FALSE, echo=FALSE}
@@ -171,6 +144,30 @@ recent_vax <- vaccines %>%
 
 
 Nova Scotia administered **`r scales::comma(recent_vax)`** vaccine doses yesterday.
+
+```{r, echo = FALSE, warning= FALSE}
+
+phases <- tibble(
+  Phase = factor(c("Phase 2", "Phase 3", "Phase 4"), levels = rev(c("Phase 2", "Phase 3", "Phase 4"))),
+  threshold = c(0.6, 0.65, 0.75)
+)
+
+vaccines %>% 
+  filter(date > "2021-05-01") %>% 
+  mutate(first_dose = total_vaccinations - (total_vaccinated / 2),
+         percent_received = first_dose / 979115) %>% 
+  ggplot(aes(x = date, y = percent_received)) +
+  geom_path() +
+  scale_y_continuous(labels = scales::percent,
+                     limits = c(0.4, 0.9),
+                     breaks = c(0.2, 0.4, 0.6, 0.65, 0.75, 0.85), minor_breaks = NULL) +
+  geom_hline(data = phases, aes(yintercept = threshold, color = Phase)) +
+  ggtitle("Proportion of Nova Scotians with one dose") +
+  xlab("Date")
+```
+
+
+
 
 ```{r message=FALSE, warning=FALSE, echo=FALSE}
 can <- resp <- GET("https://api.covid19tracker.ca/reports/")
@@ -208,8 +205,10 @@ vax_comp %>%
   ) +
   scale_y_continuous(breaks = breaks, labels = scales::comma)
 
-vaccines$date <- lubridate::ymd(vaccines$date)
+```
 
+```{r, echo = FALSE}
+vaccines$date <- lubridate::ymd(vaccines$date)
 
 get_immune <-  function(check_date, df = vaccines) {
   df %>% 
@@ -246,93 +245,5 @@ ggplot(vaccines, aes(x = date, y = immune)) +
 
 
 ```
-
-```{r message=FALSE, warning=FALSE, echo=FALSE}
-provs <- GET("https://api.covid19tracker.ca/provinces")
-provs <- tibble(raw = content(provs)) %>% 
-  unnest_auto("raw")
-
-provs <- provs %>% 
-  mutate(code = tolower(code)) %>% 
-  filter(population > 50000) 
-
-get_province <- function(prov = "ns") {
-  resp <- GET(paste0("https://api.covid19tracker.ca/reports/province/", prov), query = list(after = Sys.Date() - 6))
-  covid <- tibble(raw = content(resp)$data) %>% 
-    unnest_auto(raw)
-  covid$prov <- prov
-  return(covid)
-}
-
-dat <-  purrr::map_df(tolower(provs$code), get_province)
-
-comp_df <- dat %>% 
-  left_join(provs, by = c("prov" = "code")) %>% 
-  mutate(date = lubridate::ymd(date)) %>% 
-  group_by(prov, name) %>% 
-  arrange(date) %>% 
-  summarise(
-    total_vaccines_distributed = mean(total_vaccines_distributed, na.rm = TRUE),
-    total_vaccinations = mean(total_vaccinations, na.rm = TRUE),
-    population = mean(population, na.rm = TRUE)
-  ) %>% 
-  mutate(population = population / 1e6) %>% 
-  mutate(doses_stored_per_million = (total_vaccines_distributed - total_vaccinations) / population)
-
-median_val <-  median(comp_df$doses_stored_per_million)
-
-comp_df  %>% 
-  ggplot(aes(y = forcats::fct_reorder(name, doses_stored_per_million), 
-             x = doses_stored_per_million)) +
-  geom_point() +
-  scale_x_continuous(label = scales::comma) +
-  labs(title = "Vaccine doses stored per capita",
-       subtitle = "Seven day average",
-       y = "Province",
-       x = "Doses stored per million residents") + 
-  theme_minimal()
-
-```
-
-```{r message=FALSE, warning=FALSE, echo=FALSE}
-plot_df %>%
-  ungroup() %>% 
-  mutate(Reserved = reserved + total_vaccinations) %>% 
-  select(date,  `Available` = total_vaccines_distributed, 
-         `Administered` = total_vaccinations) %>% 
-  pivot_longer(-date) %>% 
-  mutate(name = factor(name, levels = c("Available", "Administered"))) %>% 
-  filter(date > "2020-12-21") %>% 
-  ggplot(aes(x = date, y = value, group = name, fill = name)) +
-  geom_ribbon(aes(ymax = value, ymin = 0)) +
-  labs(
-    title = "Nova Scotia's vaccine distribution has been slow",
-    x = "Date",
-    y = "Doses",
-    fill = "Doses"
-  ) +
-  scale_fill_viridis_d(option = "D") +
-  scale_y_continuous(breaks = c(max(plot_df$total_vaccinations), 
-                                max(plot_df$total_vaccines_distributed, na.rm = TRUE)),
-                     labels = scales::comma) +
-  theme(panel.grid.minor = element_blank())
-```
-
-
-```{r message=FALSE, warning=FALSE, echo=FALSE}
-vaccines %>% 
-  filter(date > "2020-12-15") %>% 
-  ggplot(aes(x = date, y = in_freezer)) +
-  geom_path() +
-  scale_y_continuous(
-    labels = scales::comma) +
-  labs(title = "Nova Scotia has a lot of unused vaccine",
-       y = "Stored doses",
-       x = "Date") +
-  theme(panel.grid.minor = element_blank()) 
-```
-
-
-
 
 
