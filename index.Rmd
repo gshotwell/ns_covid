@@ -27,7 +27,7 @@ test_interp <- covid$change_tests[covid$date == makeup_date] / 4
 covid$change_tests[covid$date %in% c(missed_dates, makeup_date)] <- test_interp
 
 is_weekend <- wday(today(), label = TRUE) %in% c("Sun", "Sat")
-manual <- 12
+manual <- NA
 if (nrow(today) == 0 ||
     today$change_tests == 0 ||
     (today$change_vaccinations == 0 && !is_weekend)) {
