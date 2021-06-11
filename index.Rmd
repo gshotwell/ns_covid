@@ -149,8 +149,10 @@ Nova Scotia administered **`r scales::comma(recent_vax)`** vaccine doses yesterd
 
 phases <- tibble(
   Phase = factor(c("Phase 2", "Phase 3", "Phase 4"), levels = rev(c("Phase 2", "Phase 3", "Phase 4"))),
-  threshold = c(0.6, 0.65, 0.75)
+  threshold = c(0.6, 0.65, 0.75),
+  date = lubridate::ymd(c("2021-06-16", "2021-06-30", "2021-07-15"))
 )
+
 
 vaccines %>% 
   filter(date > "2021-05-01") %>% 
@@ -158,10 +160,14 @@ vaccines %>%
          percent_received = first_dose / 979115) %>% 
   ggplot(aes(x = date, y = percent_received)) +
   geom_path() +
+  scale_x_date(limits = c(ymd("2021-05-01"), ymd("2021-07-30")), 
+               breaks = phases$date,
+               minor_breaks = NULL) +
   scale_y_continuous(labels = scales::percent,
                      limits = c(0.4, 0.9),
                      breaks = c(0.2, 0.4, 0.6, 0.65, 0.75, 0.85), minor_breaks = NULL) +
   geom_hline(data = phases, aes(yintercept = threshold, color = Phase)) +
+  geom_vline(data = phases, aes(xintercept = date, color = Phase), linetype="dotted") +
   ggtitle("Proportion of Nova Scotians with one dose") +
   xlab("Date")
 ```
