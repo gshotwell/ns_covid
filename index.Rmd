@@ -214,39 +214,16 @@ vax_comp %>%
 
 ```
 
-```{r, echo = FALSE}
-vaccines$date <- lubridate::ymd(vaccines$date)
-
-get_immune <-  function(check_date, df = vaccines) {
-  df %>% 
-    ungroup() %>% 
-    filter(date < check_date) %>% 
-    select(change_vaccinations, date) %>% 
-    arrange(desc(date)) %>% 
-    mutate(days = row_number(), 
-           immune_pct = case_when(
-             days >= 49 ~ 0.64,
-             days >= 42 & days < 48 ~ 0.70,
-             days >= 35 & days < 42 ~ 0.71,
-             days >= 28 & days < 35 ~ 0.68,
-             days >= 21 & days < 28 ~ 0.60,
-             days >= 14 & days < 21 ~ 0.48,
-             TRUE ~ 0.03
-           )
-    ) %>% 
-    mutate(immune_pop = change_vaccinations * immune_pct) %>% 
-    pull(immune_pop) %>% 
-    sum()
-}
-
-
-vaccines$immune <- purrr::map_dbl(vaccines$date, get_immune) / 1e6
+```{r, echo = FALSE, warning = FALSE}
+vaccines <- vaccines %>% 
+  mutate(one_dose = total_vaccinations - 2 * total_vaccinated) %>% 
+  mutate(immune = (.70 * one_dose + 0.95 * total_vaccinated) / 1e6)
 
 ggplot(vaccines, aes(x = date, y = immune)) + 
   geom_line() +
   scale_y_continuous(labels = scales::percent, limits = c(0, 0.8)) +
   labs (title = "Nova Scotia Aggregate immunity",
-        subtitle = "Based on an estimated effectiveness of one vaccine dose",
+        subtitle = "Based on an estimated effectiveness of one and two dose vaccines",
         y = "Aggregate immunity",
         x = "Date")
 
