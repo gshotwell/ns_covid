@@ -154,20 +154,27 @@ phases <- tibble(
 )
 
 
-vaccines %>% 
+plot_df <- vaccines %>% 
   filter(date > "2021-05-01") %>% 
   mutate(first_dose = total_vaccinations - total_vaccinated,
-         percent_received = first_dose / 979115) %>% 
-  ggplot(aes(x = date, y = percent_received)) +
+         percent_received = first_dose / 979115,
+         percent_fully_vaxed = total_vaccinated / 979115) %>% 
+  ungroup() %>% 
+  select(date, `One dose` = percent_received, `Two doses` = percent_fully_vaxed) %>% 
+  pivot_longer(-date, names_to = "Status")
+
+plot_df %>% 
+  ggplot(aes(x = date, y = value, group = Status, color = Status)) +
   geom_path() +
   scale_x_date(limits = c(ymd("2021-05-01"), ymd("2021-07-30")), 
                breaks = phases$date,
+               labels = phases$Phase,
                minor_breaks = NULL) +
   scale_y_continuous(labels = scales::percent,
-                     limits = c(0.4, 0.9),
+                     limits = c(0, 0.9),
                      breaks = c(0.2, 0.4, 0.6, 0.65, 0.75, 0.85), minor_breaks = NULL) +
-  geom_hline(data = phases, aes(yintercept = threshold, color = Phase), alpha = 0.5) +
-  geom_vline(data = phases, aes(xintercept = date, color = Phase), linetype="dotted") +
+  geom_hline(data = phases, aes(yintercept = threshold), alpha = 0.3) +
+  geom_vline(data = phases, aes(xintercept = date), linetype="dotted") +
   ggtitle("Proportion of Nova Scotians with one dose") +
   xlab("Date") + 
   ylab("Percent of population")
