@@ -175,7 +175,7 @@ plot_df %>%
                      breaks = c(0.2, 0.4, 0.6, 0.65, 0.75, 0.85), minor_breaks = NULL) +
   geom_hline(data = phases, aes(yintercept = threshold), alpha = 0.3) +
   geom_vline(data = phases, aes(xintercept = date), linetype="dotted") +
-  ggtitle("Proportion of Nova Scotians with one dose") +
+  ggtitle("Vaccinated Nova Scotias") +
   xlab("Date") + 
   ylab("Percent of population")
 ```
