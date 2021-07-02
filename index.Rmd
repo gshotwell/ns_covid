@@ -140,12 +140,6 @@ plot_df <- vaccines %>%
 recent_vax <- vaccines %>% 
   filter(date == Sys.Date()) %>% 
   pull(change_vaccinations)
-```
-
-
-Nova Scotia administered **`r scales::comma(recent_vax)`** vaccine doses yesterday.
-
-```{r, echo = FALSE, warning= FALSE}
 
 phases <- tibble(
   Phase = factor(c("Phase 2", "Phase 3", "Phase 4"), levels = rev(c("Phase 2", "Phase 3", "Phase 4"))),
@@ -163,6 +157,18 @@ plot_df <- vaccines %>%
   select(date, `One dose` = percent_received, `Two doses` = percent_fully_vaxed) %>% 
   pivot_longer(-date, names_to = "Status")
 
+percent_first <- plot_df %>% 
+  filter(Status == "One dose") %>% 
+  filter(value == max(value)) %>% 
+  pull(value)
+
+percent_first <- scales::percent(percent_first[1], accuracy = 0.01)
+```
+
+
+Nova Scotia administered **`r scales::comma(recent_vax)`** vaccine doses yesterday and **`r percent_first`** have received their first dose.
+
+```{r, echo = FALSE, warning= FALSE}
 plot_df %>% 
   ggplot(aes(x = date, y = value, group = Status, color = Status)) +
   geom_path() +
